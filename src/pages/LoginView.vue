@@ -43,10 +43,13 @@ async function handleLogin() {
 }
 
 async function handleMfaSubmit() {
-  const code = isUsingBackupCode.value
+  const rawCode = isUsingBackupCode.value
     ? backupCodePin.value.join('')
     : mfaPin.value.join('')
   
+  // Strip hyphens or whitespace before sending payload to backend
+  const code = rawCode.replace(/[- ]/g, '')
+
   if (isUsingBackupCode.value ? code.length < 8 : code.length < 6) {
     localError.value = isUsingBackupCode.value
       ? 'Please enter all 8 characters of your emergency backup code.'
@@ -107,7 +110,7 @@ function cancelMfa() {
       <!-- MFA Step 2 Form -->
       <div v-if="authStore.mfaRequired" class="space-y-4">
         <UFormField
-          :label="isUsingBackupCode ? '8-Character Backup Code (e.g. CU3C-KG3D)' : '6-Digit Authenticator Code'"
+          :label="isUsingBackupCode ? '8-Character Emergency Backup Code' : '6-Digit Authenticator Code'"
           required
           class="flex flex-col items-center"
         >
@@ -124,12 +127,11 @@ function cancelMfa() {
             />
           </div>
 
-          <!-- Emergency Backup Code OTP Input (8 chars with hyphen separator at 4) -->
+          <!-- Emergency Backup Code OTP Input (8 character boxes, hyphens ignored) -->
           <div v-else class="flex justify-center w-full mt-2">
             <UPinInput
               v-model="backupCodePin"
               :length="8"
-              :separator="4"
               type="text"
               otp
               size="lg"
