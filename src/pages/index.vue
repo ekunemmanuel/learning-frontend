@@ -1,11 +1,7 @@
-<template>
-    <div>
-        Hello world
-    </div>
-</template>
-
-<script lang="ts" setup>
-
+<script setup lang="ts">
+// Redirect handled by Vue Router
 </script>
 
-<style></style>
+<template>
+  <div />
+</template>
