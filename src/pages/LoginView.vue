@@ -13,7 +13,10 @@ const formState = reactive({
 })
 
 const showPassword = ref(false)
-const mfaCode = ref('')
+const mfaPin = ref<string[]>([])
+const isUsingBackupCode = ref(false)
+const backupCodeText = ref('')
+
 const isSubmitting = ref(false)
 const localError = ref<string | null>(null)
 
@@ -40,8 +43,12 @@ async function handleLogin() {
 }
 
 async function handleMfaSubmit() {
-  if (!mfaCode.value) {
-    localError.value = 'Please enter your 6-digit code or backup code.'
+  const code = isUsingBackupCode.value ? backupCodeText.value.trim() : mfaPin.value.join('')
+  
+  if (!code) {
+    localError.value = isUsingBackupCode.value
+      ? 'Please enter your emergency backup code.'
+      : 'Please enter all 6 digits of your authenticator code.'
     return
   }
 
@@ -49,11 +56,11 @@ async function handleMfaSubmit() {
   isSubmitting.value = true
 
   try {
-    await authStore.loginMfa(mfaCode.value)
+    await authStore.loginMfa(code)
     const redirect = (route.query.redirect as string) || '/dashboard'
     router.push(redirect)
   } catch (err: any) {
-    localError.value = err.message || 'Invalid 2FA authentication code.'
+    localError.value = err.message || 'Invalid authentication code.'
   } finally {
     isSubmitting.value = false
   }
@@ -61,7 +68,9 @@ async function handleMfaSubmit() {
 
 function cancelMfa() {
   authStore.cancelMfaStep()
-  mfaCode.value = ''
+  mfaPin.value = []
+  backupCodeText.value = ''
+  isUsingBackupCode.value = false
   localError.value = null
 }
 </script>
@@ -95,17 +104,49 @@ function cancelMfa() {
 
       <!-- MFA Step 2 Form -->
       <div v-if="authStore.mfaRequired" class="space-y-4">
-        <UFormField label="Authenticator / Backup Code" required help="Accepts 6-digit TOTP code or 8-character backup code">
+        <UFormField
+          :label="isUsingBackupCode ? '8-Character Emergency Backup Code' : '6-Digit Authenticator Code'"
+          required
+          class="flex flex-col items-center"
+        >
+          <!-- 6-digit TOTP Pin Input -->
+          <div v-if="!isUsingBackupCode" class="flex justify-center w-full mt-2">
+            <UPinInput
+              v-model="mfaPin"
+              :length="6"
+              type="text"
+              otp
+              size="lg"
+              class="gap-2"
+              @complete="handleMfaSubmit"
+            />
+          </div>
+
+          <!-- Emergency Backup Code Input -->
           <UInput
-            v-model="mfaCode"
-            placeholder="e.g. 123456 or a1b2c3d4"
-            icon="i-lucide-shield-check"
+            v-else
+            v-model="backupCodeText"
+            placeholder="e.g. a1b2c3d4"
+            icon="i-lucide-key-square"
             size="lg"
-            class="w-full"
+            class="w-full mt-2"
             autofocus
             @keyup.enter="handleMfaSubmit"
           />
         </UFormField>
+
+        <!-- Toggle between 6-digit TOTP and Backup code -->
+        <div class="text-center">
+          <UButton
+            color="neutral"
+            variant="link"
+            size="xs"
+            class="text-xs text-primary-600 hover:text-primary-500"
+            @click="isUsingBackupCode = !isUsingBackupCode"
+          >
+            {{ isUsingBackupCode ? 'Use 6-digit authenticator code instead' : 'Use emergency backup code instead' }}
+          </UButton>
+        </div>
 
         <div class="flex gap-3">
           <UButton

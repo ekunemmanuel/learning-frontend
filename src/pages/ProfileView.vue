@@ -7,8 +7,9 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const isSettingUpMfa = ref(false)
-const mfaConfirmationCode = ref('')
+const mfaConfirmationPin = ref<string[]>([])
 const isActivatingMfa = ref(false)
+const isMfaActive = ref(false)
 const copiedSuccess = ref(false)
 const localError = ref<string | null>(null)
 const localSuccess = ref<string | null>(null)
@@ -23,6 +24,7 @@ async function handleInitiateMfa() {
   localError.value = null
   localSuccess.value = null
   isSettingUpMfa.value = true
+  mfaConfirmationPin.value = []
 
   try {
     await authStore.setupMfa()
@@ -34,8 +36,9 @@ async function handleInitiateMfa() {
 }
 
 async function handleActivateMfa() {
-  if (!mfaConfirmationCode.value) {
-    localError.value = 'Please enter the 6-digit code from your authenticator app.'
+  const code = mfaConfirmationPin.value.join('')
+  if (code.length < 6) {
+    localError.value = 'Please enter all 6 digits from your authenticator app.'
     return
   }
 
@@ -44,7 +47,8 @@ async function handleActivateMfa() {
 
   try {
     const methodId = authStore.mfaSetupData?.methodId || ''
-    await authStore.verifyMfa(methodId, mfaConfirmationCode.value)
+    await authStore.verifyMfa(methodId, code)
+    isMfaActive.value = true
     localSuccess.value = 'Two-Factor Authentication successfully activated! Please save your emergency backup codes below.'
   } catch (err: any) {
     localError.value = err.message || 'Verification failed. Please check the code.'
@@ -160,12 +164,26 @@ async function handleLogout() {
       <!-- Security & 2FA Setup Card -->
       <UCard class="shadow-md border border-gray-200 dark:border-gray-800">
         <template #header>
-          <div class="flex items-center gap-3">
-            <UIcon name="i-lucide-shield-check" class="w-6 h-6 text-primary-500" />
-            <div>
-              <h2 class="text-lg font-bold text-gray-900 dark:text-white">Two-Factor Authentication (MFA)</h2>
-              <p class="text-xs text-gray-500">Protect your account using Google Authenticator, Microsoft Authenticator, or 1Password</p>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <UIcon name="i-lucide-shield-check" class="w-6 h-6 text-primary-500" />
+              <div>
+                <h2 class="text-lg font-bold text-gray-900 dark:text-white">Two-Factor Authentication (MFA)</h2>
+                <p class="text-xs text-gray-500">Protect your account using Google Authenticator, Microsoft Authenticator, or 1Password</p>
+              </div>
             </div>
+
+            <!-- Active Status Badge -->
+            <UBadge
+              v-if="isMfaActive || authStore.backupCodes.length > 0"
+              color="success"
+              variant="subtle"
+              size="md"
+              class="font-semibold flex items-center gap-1"
+            >
+              <UIcon name="i-lucide-check-circle" class="w-4 h-4" />
+              2FA Active
+            </UBadge>
           </div>
         </template>
 
@@ -189,7 +207,7 @@ async function handleLogout() {
         />
 
         <!-- Active 2FA Backup Codes Banner -->
-        <div v-if="authStore.backupCodes.length > 0" class="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 space-y-3">
+        <div v-if="authStore.backupCodes.length > 0" class="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 space-y-3 mb-4">
           <div class="flex items-center justify-between">
             <h3 class="font-bold text-emerald-800 dark:text-emerald-300 text-sm flex items-center gap-2">
               <UIcon name="i-lucide-key-square" class="w-5 h-5" />
@@ -219,8 +237,8 @@ async function handleLogout() {
           </div>
         </div>
 
-        <!-- Initial Setup Button -->
-        <div v-if="!authStore.mfaSetupData" class="py-2 flex items-center justify-between">
+        <!-- Initial Setup Button (Unconfigured State) -->
+        <div v-if="!authStore.mfaSetupData && !isMfaActive" class="py-2 flex items-center justify-between">
           <div>
             <p class="text-sm font-medium text-gray-900 dark:text-white">Authenticator App Integration</p>
             <p class="text-xs text-gray-500">Generate a Base32 secret key and QR code</p>
@@ -235,8 +253,25 @@ async function handleLogout() {
           </UButton>
         </div>
 
-        <!-- QR Code & Setup Step -->
-        <div v-else-if="authStore.mfaSetupData && authStore.backupCodes.length === 0" class="space-y-6 pt-2">
+        <!-- Re-configure 2FA Button (Already Active State) -->
+        <div v-else-if="isMfaActive && !authStore.mfaSetupData" class="py-2 flex items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-4">
+          <div>
+            <p class="text-sm font-medium text-gray-900 dark:text-white">Re-configure Authenticator App</p>
+            <p class="text-xs text-gray-500">Scan a new QR code to replace your existing 2FA key</p>
+          </div>
+          <UButton
+            color="neutral"
+            variant="outline"
+            icon="i-lucide-refresh-cw"
+            :loading="isSettingUpMfa"
+            @click="handleInitiateMfa"
+          >
+            Re-configure 2FA
+          </UButton>
+        </div>
+
+        <!-- QR Code & 6-digit OTP Setup Step -->
+        <div v-else-if="authStore.mfaSetupData" class="space-y-6 pt-2">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center border-t border-gray-100 dark:border-gray-800 pt-4">
             
             <!-- QR Image -->
@@ -250,7 +285,7 @@ async function handleLogout() {
               <p class="text-xs text-gray-500 mt-2 text-center">Scan with Google Authenticator or Authy</p>
             </div>
 
-            <!-- Manual Secret Key -->
+            <!-- Manual Secret Key & 6-Digit OTP Pin Input -->
             <div class="space-y-4">
               <div>
                 <span class="text-xs font-semibold text-gray-400 uppercase">Base32 Secret Key (Manual Entry)</span>
@@ -259,22 +294,27 @@ async function handleLogout() {
                 </div>
               </div>
 
-              <!-- Activation Input -->
-              <UFormField label="Step 2: Enter 6-digit confirmation code" required>
-                <UInput
-                  v-model="mfaConfirmationCode"
-                  placeholder="123456"
-                  icon="i-lucide-shield-check"
-                  maxlength="6"
-                  class="w-full font-mono text-center tracking-widest text-lg"
-                />
+              <!-- Activation UPinInput (6 Digits) -->
+              <UFormField label="Step 2: Enter 6-digit code from app" required class="flex flex-col items-center">
+                <div class="flex justify-center w-full mt-2">
+                  <UPinInput
+                    v-model="mfaConfirmationPin"
+                    :length="6"
+                    type="text"
+                    otp
+                    size="lg"
+                    class="gap-2"
+                    @complete="handleActivateMfa"
+                  />
+                </div>
               </UFormField>
 
               <UButton
                 color="primary"
                 block
-                class="w-full justify-center"
+                class="w-full justify-center mt-3"
                 :loading="isActivatingMfa"
+                :disabled="mfaConfirmationPin.join('').length < 6"
                 @click="handleActivateMfa"
               >
                 Verify & Enable 2FA

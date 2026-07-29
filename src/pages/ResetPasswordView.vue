@@ -7,8 +7,9 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
+// Identifier and code are preserved from URL query parameters (set during verification step)
 const formState = reactive({
-  identifier: (route.query.identifier as string) || '',
+  identifier: (route.query.identifier as string) || authStore.lastRegisteredIdentifier || '',
   code: (route.query.code as string) || '',
   newPassword: '',
   confirmPassword: '',
@@ -21,13 +22,23 @@ const message = ref<string | null>(null)
 const localError = ref<string | null>(null)
 
 async function handleResetPassword() {
-  if (!formState.identifier || !formState.code || !formState.newPassword) {
-    localError.value = 'Please complete all required fields.'
+  if (!formState.newPassword) {
+    localError.value = 'Please enter a new password.'
+    return
+  }
+
+  if (formState.newPassword.length < 8) {
+    localError.value = 'Password must be at least 8 characters long.'
     return
   }
 
   if (formState.newPassword !== formState.confirmPassword) {
     localError.value = 'Passwords do not match.'
+    return
+  }
+
+  if (!formState.identifier || !formState.code) {
+    localError.value = 'Missing password reset authorization code. Please request a new reset link.'
     return
   }
 
@@ -48,7 +59,7 @@ async function handleResetPassword() {
       router.push('/login')
     }, 1200)
   } catch (err: any) {
-    localError.value = err.message || 'Failed to reset password.'
+    localError.value = err.message || 'Failed to reset password. The reset code may have expired.'
   } finally {
     isSubmitting.value = false
   }
@@ -61,13 +72,13 @@ async function handleResetPassword() {
       <template #header>
         <div class="text-center space-y-2">
           <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-600 dark:text-primary-400 mb-1">
-            <UIcon name="i-lucide-lock" class="w-6 h-6" />
+            <UIcon name="i-lucide-key-round" class="w-6 h-6" />
           </div>
           <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
             Set New Password
           </h1>
           <p class="text-sm text-gray-500 dark:text-gray-400">
-            Enter your reset code and choose a new secure password
+            Choose a new secure password for your account
           </p>
         </div>
       </template>
@@ -92,33 +103,17 @@ async function handleResetPassword() {
         class="mb-4"
       />
 
+      <!-- Simplified Form: Only New Password & Confirm New Password -->
       <UForm :state="formState" class="space-y-4" @submit="handleResetPassword">
-        <UFormField label="Username, Email or Phone" required>
-          <UInput
-            v-model="formState.identifier"
-            placeholder="pablodev"
-            icon="i-lucide-user"
-            class="w-full"
-          />
-        </UFormField>
-
-        <UFormField label="4-Digit Security Code" required>
-          <UInput
-            v-model="formState.code"
-            placeholder="1234"
-            icon="i-lucide-hash"
-            maxlength="4"
-            class="w-full font-mono text-center tracking-wider text-lg"
-          />
-        </UFormField>
-
         <UFormField label="New Password" required help="Must be at least 8 characters">
           <UInput
             v-model="formState.newPassword"
             :type="showNewPassword ? 'text' : 'password'"
             placeholder="••••••••"
-            icon="i-lucide-key-round"
+            icon="i-lucide-lock"
+            size="lg"
             class="w-full"
+            autofocus
           >
             <template #trailing>
               <UButton
@@ -139,7 +134,8 @@ async function handleResetPassword() {
             v-model="formState.confirmPassword"
             :type="showConfirmPassword ? 'text' : 'password'"
             placeholder="••••••••"
-            icon="i-lucide-key-round"
+            icon="i-lucide-lock"
+            size="lg"
             class="w-full"
           >
             <template #trailing>
@@ -164,15 +160,15 @@ async function handleResetPassword() {
           class="w-full justify-center text-base font-semibold py-2.5 mt-2"
           :loading="isSubmitting"
         >
-          Reset Password
+          Update Password
         </UButton>
       </UForm>
 
       <template #footer>
         <p class="text-center text-sm text-gray-500 dark:text-gray-400">
-          Return to
+          Remembered your password?
           <RouterLink to="/login" class="text-primary-600 hover:text-primary-500 dark:text-primary-400 font-semibold ml-1">
-            Sign In
+            Back to Sign In
           </RouterLink>
         </p>
       </template>
