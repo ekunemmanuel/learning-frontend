@@ -14,6 +14,8 @@ const formState = reactive({
   confirmPassword: '',
 })
 
+const showNewPassword = ref(false)
+const showConfirmPassword = ref(false)
 const isSubmitting = ref(false)
 const message = ref<string | null>(null)
 const localError = ref<string | null>(null)
@@ -113,21 +115,45 @@ async function handleResetPassword() {
         <UFormField label="New Password" required help="Must be at least 8 characters">
           <UInput
             v-model="formState.newPassword"
-            type="password"
+            :type="showNewPassword ? 'text' : 'password'"
             placeholder="••••••••"
             icon="i-lucide-key-round"
             class="w-full"
-          />
+          >
+            <template #trailing>
+              <UButton
+                color="neutral"
+                variant="link"
+                size="xs"
+                :icon="showNewPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+                aria-label="Toggle password visibility"
+                class="p-0.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 pointer-events-auto"
+                @click="showNewPassword = !showNewPassword"
+              />
+            </template>
+          </UInput>
         </UFormField>
 
         <UFormField label="Confirm New Password" required>
           <UInput
             v-model="formState.confirmPassword"
-            type="password"
+            :type="showConfirmPassword ? 'text' : 'password'"
             placeholder="••••••••"
             icon="i-lucide-key-round"
             class="w-full"
-          />
+          >
+            <template #trailing>
+              <UButton
+                color="neutral"
+                variant="link"
+                size="xs"
+                :icon="showConfirmPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+                aria-label="Toggle password visibility"
+                class="p-0.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 pointer-events-auto"
+                @click="showConfirmPassword = !showConfirmPassword"
+              />
+            </template>
+          </UInput>
         </UFormField>
 
         <UButton

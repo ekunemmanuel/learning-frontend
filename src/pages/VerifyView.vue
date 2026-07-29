@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 
@@ -7,20 +7,68 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
-const identifier = ref((route.query.identifier as string) || authStore.lastRegisteredIdentifier || '')
-const code = ref('')
-const verifyType = ref<'email_verification' | 'phone_verification' | 'password_reset'>(
-  (route.query.type as any) || 'email_verification'
-)
+// Email destination display
+const emailAddress = computed(() => {
+  return (
+    (route.query.email as string) ||
+    (route.query.identifier as string) ||
+    authStore.lastRegisteredIdentifier ||
+    authStore.user?.email ||
+    'your email address'
+  )
+})
 
+const identifier = computed(() => {
+  return (
+    (route.query.identifier as string) ||
+    (route.query.email as string) ||
+    authStore.lastRegisteredIdentifier ||
+    authStore.user?.email ||
+    ''
+  )
+})
+
+// Pin Input state (array of 4 digits or string array)
+const pinValue = ref<string[]>([])
 const isSubmitting = ref(false)
 const isResending = ref(false)
 const message = ref<string | null>(null)
 const localError = ref<string | null>(null)
 
+// 1-minute countdown timer (60 seconds)
+const timerSeconds = ref(60)
+let timerInterval: ReturnType<typeof setInterval> | null = null
+
+function startTimer(seconds = 60) {
+  timerSeconds.value = seconds
+  if (timerInterval) clearInterval(timerInterval)
+  timerInterval = setInterval(() => {
+    if (timerSeconds.value > 0) {
+      timerSeconds.value--
+    } else {
+      if (timerInterval) clearInterval(timerInterval)
+    }
+  }, 1000)
+}
+
+onMounted(() => {
+  startTimer(60)
+})
+
+onUnmounted(() => {
+  if (timerInterval) clearInterval(timerInterval)
+})
+
+const formattedTimer = computed(() => {
+  const mins = Math.floor(timerSeconds.value / 60)
+  const secs = timerSeconds.value % 60
+  return `${mins}:${secs < 10 ? '0' : ''}${secs}`
+})
+
 async function handleVerify() {
-  if (!identifier.value || !code.value) {
-    localError.value = 'Please enter both your identifier and 4-digit verification code.'
+  const code = pinValue.value.join('')
+  if (code.length < 4) {
+    localError.value = 'Please fill in all 4 digits of the verification code.'
     return
   }
 
@@ -31,32 +79,34 @@ async function handleVerify() {
   try {
     const msg = await authStore.verifyCode({
       identifier: identifier.value,
-      code: code.value,
-      type: verifyType.value,
+      code,
+      type: 'email_verification',
     })
 
-    message.value = msg || 'Verification successful!'
+    message.value = msg || 'Account verified successfully!'
 
     setTimeout(() => {
-      if (verifyType.value === 'password_reset') {
+      if (route.query.type === 'password_reset') {
         router.push({
           path: '/reset-password',
-          query: { identifier: identifier.value, code: code.value },
+          query: { identifier: identifier.value, code },
         })
       } else {
         router.push('/login')
       }
     }, 1200)
   } catch (err: any) {
-    localError.value = err.message || 'Verification failed.'
+    localError.value = err.message || 'Verification failed. Please check the code and try again.'
   } finally {
     isSubmitting.value = false
   }
 }
 
 async function handleResend() {
+  if (timerSeconds.value > 0 || isResending.value) return
+
   if (!identifier.value) {
-    localError.value = 'Please enter your identifier to resend code.'
+    localError.value = 'Missing recipient information for resending code.'
     return
   }
 
@@ -67,9 +117,10 @@ async function handleResend() {
   try {
     const msg = await authStore.resendOtp({
       identifier: identifier.value,
-      purpose: verifyType.value,
+      purpose: (route.query.type as any) || 'email_verification',
     })
-    message.value = msg || 'A new verification code has been sent.'
+    message.value = msg || 'A new 4-digit code has been sent to your email.'
+    startTimer(60)
   } catch (err: any) {
     localError.value = err.message || 'Failed to resend verification code.'
   } finally {
@@ -84,18 +135,23 @@ async function handleResend() {
       <template #header>
         <div class="text-center space-y-2">
           <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-600 dark:text-primary-400 mb-1">
-            <UIcon name="i-lucide-shield-alert" class="w-6 h-6" />
+            <UIcon name="i-lucide-mail-check" class="w-6 h-6" />
           </div>
           <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Security Verification
+            Check Your Email
           </h1>
-          <p class="text-sm text-gray-500 dark:text-gray-400">
-            Enter the 4-digit code sent to your email or phone
+          <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+            We sent a 4-digit verification code to
           </p>
+          <div class="inline-block px-3 py-1 bg-primary-50 dark:bg-primary-950/50 rounded-full border border-primary-200 dark:border-primary-800">
+            <span class="text-sm font-semibold text-primary-700 dark:text-primary-300">
+              {{ emailAddress }}
+            </span>
+          </div>
         </div>
       </template>
 
-      <!-- Alert Error -->
+      <!-- Error Alert -->
       <UAlert
         v-if="localError || authStore.error"
         color="error"
@@ -115,83 +171,48 @@ async function handleResend() {
         class="mb-4"
       />
 
-      <UForm class="space-y-4" @submit="handleVerify">
-        <UFormField label="Username, Email or Phone" required>
-          <UInput
-            v-model="identifier"
-            placeholder="pablodev"
-            icon="i-lucide-user"
-            class="w-full"
-          />
-        </UFormField>
-
-        <UFormField label="Verification Type" required>
-          <div class="grid grid-cols-3 gap-2">
-            <UButton
-              type="button"
-              size="xs"
-              :color="verifyType === 'email_verification' ? 'primary' : 'neutral'"
-              :variant="verifyType === 'email_verification' ? 'solid' : 'outline'"
-              @click="verifyType = 'email_verification'"
-            >
-              Email
-            </UButton>
-            <UButton
-              type="button"
-              size="xs"
-              :color="verifyType === 'phone_verification' ? 'primary' : 'neutral'"
-              :variant="verifyType === 'phone_verification' ? 'solid' : 'outline'"
-              @click="verifyType = 'phone_verification'"
-            >
-              Phone
-            </UButton>
-            <UButton
-              type="button"
-              size="xs"
-              :color="verifyType === 'password_reset' ? 'primary' : 'neutral'"
-              :variant="verifyType === 'password_reset' ? 'solid' : 'outline'"
-              @click="verifyType = 'password_reset'"
-            >
-              Reset
-            </UButton>
+      <div class="space-y-6 text-center py-2">
+        <UFormField label="Enter 4-Digit Security Code" required class="flex flex-col items-center">
+          <div class="flex justify-center w-full mt-2">
+            <UPinInput
+              v-model="pinValue"
+              :length="4"
+              type="text"
+              otp
+              size="lg"
+              class="gap-3"
+              @complete="handleVerify"
+            />
           </div>
         </UFormField>
 
-        <UFormField label="4-Digit Security Code" required help="Enter 4-digit code e.g. 1234">
-          <UInput
-            v-model="code"
-            placeholder="1234"
-            icon="i-lucide-hash"
-            size="lg"
-            maxlength="4"
-            class="w-full text-center font-mono tracking-widest text-xl"
-            autofocus
-          />
-        </UFormField>
-
         <UButton
-          type="submit"
           color="primary"
           size="lg"
           block
-          class="w-full justify-center text-base font-semibold py-2.5 mt-2"
+          class="w-full justify-center text-base font-semibold py-2.5"
           :loading="isSubmitting"
+          :disabled="pinValue.join('').length < 4"
+          @click="handleVerify"
         >
           Verify Code
         </UButton>
-      </UForm>
+      </div>
 
       <template #footer>
         <div class="flex items-center justify-between text-sm">
-          <span class="text-gray-500 dark:text-gray-400">Didn't receive code?</span>
+          <span class="text-gray-500 dark:text-gray-400">Didn't receive the code?</span>
           <UButton
             color="neutral"
             variant="ghost"
-            size="xs"
+            size="sm"
+            :disabled="timerSeconds > 0 || isResending"
             :loading="isResending"
+            icon="i-lucide-rotate-cw"
             @click="handleResend"
           >
-            Resend OTP
+            <span v-if="timerSeconds > 0">Resend in {{ formattedTimer }}</span>
+            <span v-else>Resend OTP</span>
           </UButton>
         </div>
       </template>

@@ -12,6 +12,7 @@ const formState = reactive({
   password: '',
 })
 
+const showPassword = ref(false)
 const mfaCode = ref('')
 const isSubmitting = ref(false)
 const localError = ref<string | null>(null)
@@ -148,12 +149,24 @@ function cancelMfa() {
           </template>
           <UInput
             v-model="formState.password"
-            type="password"
+            :type="showPassword ? 'text' : 'password'"
             placeholder="••••••••"
             icon="i-lucide-key-round"
             size="lg"
             class="w-full"
-          />
+          >
+            <template #trailing>
+              <UButton
+                color="neutral"
+                variant="link"
+                size="xs"
+                :icon="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+                aria-label="Toggle password visibility"
+                class="p-0.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 pointer-events-auto"
+                @click="showPassword = !showPassword"
+              />
+            </template>
+          </UInput>
         </UFormField>
 
         <UButton
