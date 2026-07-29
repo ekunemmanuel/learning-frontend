@@ -117,6 +117,7 @@ function cancelMfa() {
         <UFormField
           :label="isUsingBackupCode ? '8-Character Emergency Backup Code' : '6-Digit Authenticator Code'"
           required
+          :error="authStore.fieldErrors.mfaCode"
           class="flex flex-col items-center"
         >
           <!-- 6-digit TOTP Pin Input -->
@@ -182,7 +183,7 @@ function cancelMfa() {
 
       <!-- Step 1 Login Form -->
       <UForm v-else :state="formState" class="space-y-4" @submit="handleLogin">
-        <UFormField label="Email, Username or Phone" required>
+        <UFormField label="Email, Username or Phone" required :error="authStore.fieldErrors.identifier">
           <UInput
             v-model="formState.identifier"
             placeholder="you@example.com or pablodev"
@@ -193,7 +194,7 @@ function cancelMfa() {
           />
         </UFormField>
 
-        <UFormField label="Password" required>
+        <UFormField label="Password" required :error="authStore.fieldErrors.password">
           <template #hint>
             <RouterLink to="/forgot-password" class="text-xs text-primary hover:text-primary-500 font-medium">
               Forgot password?

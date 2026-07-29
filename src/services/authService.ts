@@ -31,8 +31,10 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 
   const json = await response.json().catch(() => ({}))
 
-  if (!response.ok) {
-    throw new Error(json.message || `Request failed with status ${response.status}`)
+  if (!response.ok || (json && json.success === false)) {
+    const err: any = new Error(json.message || `Request failed with status ${response.status}`)
+    err.errors = json.errors || []
+    throw err
   }
 
   return json

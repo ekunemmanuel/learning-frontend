@@ -7,6 +7,7 @@ import type {
   ResetPasswordPayload,
   SignupPayload,
   UserProfile,
+  ValidationErrorItem,
   VerifyPayload,
 } from '../types/auth'
 
@@ -22,6 +23,7 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = ref<boolean>(false)
   const isLoading = ref<boolean>(false)
   const error = ref<string | null>(null)
+  const fieldErrors = ref<Record<string, string>>({})
 
   // MFA Step 2 State
   const mfaRequired = ref<boolean>(false)
@@ -50,6 +52,20 @@ export const useAuthStore = defineStore('auth', () => {
 
   function clearError() {
     error.value = null
+    fieldErrors.value = {}
+  }
+
+  function handleActionError(err: any, fallbackMessage: string) {
+    error.value = err.message || fallbackMessage
+    const errorsMap: Record<string, string> = {}
+    if (Array.isArray(err.errors)) {
+      err.errors.forEach((item: ValidationErrorItem) => {
+        if (item.field) {
+          errorsMap[item.field] = item.message
+        }
+      })
+    }
+    fieldErrors.value = errorsMap
   }
 
   function setPendingVerification(data: PendingVerification) {
@@ -109,7 +125,7 @@ export const useAuthStore = defineStore('auth', () => {
       await fetchUser()
       return { mfaRequired: false }
     } catch (err: any) {
-      error.value = err.message || 'Login failed. Please check your credentials.'
+      handleActionError(err, 'Login failed. Please check your credentials.')
       throw err
     } finally {
       isLoading.value = false
@@ -129,7 +145,7 @@ export const useAuthStore = defineStore('auth', () => {
       pendingCredentials.value = null
       await fetchUser()
     } catch (err: any) {
-      error.value = err.message || 'Invalid authenticator code.'
+      handleActionError(err, 'Invalid authenticator code.')
       throw err
     } finally {
       isLoading.value = false
@@ -148,7 +164,7 @@ export const useAuthStore = defineStore('auth', () => {
       })
       return res.message
     } catch (err: any) {
-      error.value = err.message || 'Registration failed.'
+      handleActionError(err, 'Registration failed.')
       throw err
     } finally {
       isLoading.value = false
@@ -165,7 +181,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
       return res.message
     } catch (err: any) {
-      error.value = err.message || 'Verification failed.'
+      handleActionError(err, 'Verification failed.')
       throw err
     } finally {
       isLoading.value = false
@@ -179,7 +195,7 @@ export const useAuthStore = defineStore('auth', () => {
       const res = await authService.resendOtp(payload)
       return res.message
     } catch (err: any) {
-      error.value = err.message || 'Failed to resend code.'
+      handleActionError(err, 'Failed to resend code.')
       throw err
     } finally {
       isLoading.value = false
@@ -194,7 +210,7 @@ export const useAuthStore = defineStore('auth', () => {
       clearPendingVerification()
       return res.message
     } catch (err: any) {
-      error.value = err.message || 'Failed to reset password.'
+      handleActionError(err, 'Failed to reset password.')
       throw err
     } finally {
       isLoading.value = false
@@ -212,7 +228,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
       throw new Error('Failed to retrieve MFA setup data.')
     } catch (err: any) {
-      error.value = err.message || 'Failed to initialize 2FA.'
+      handleActionError(err, 'Failed to initialize 2FA.')
       throw err
     } finally {
       isLoading.value = false
@@ -229,7 +245,7 @@ export const useAuthStore = defineStore('auth', () => {
       await fetchUser()
       return codes
     } catch (err: any) {
-      error.value = err.message || 'MFA verification failed.'
+      handleActionError(err, 'MFA verification failed.')
       throw err
     } finally {
       isLoading.value = false
@@ -250,6 +266,7 @@ export const useAuthStore = defineStore('auth', () => {
       mfaSetupData.value = null
       backupCodes.value = []
       pendingVerification.value = null
+      fieldErrors.value = {}
       isLoading.value = false
     }
   }
@@ -264,6 +281,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     isLoading,
     error,
+    fieldErrors,
     mfaRequired,
     pendingCredentials,
     pendingVerification,

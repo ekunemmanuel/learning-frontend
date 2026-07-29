@@ -1,17 +1,42 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { reactive, ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
+import { COUNTRIES } from '../data/countries'
 
 const router = useRouter()
 const authStore = useAuthStore()
+
+// String refs for USelectMenu value-key bindings
+const selectedCountryCode = ref<string>('NG')
+const selectedDialCode = ref<string>('+234')
+const rawPhoneNumber = ref('')
+
+const selectedCountry = computed(() => {
+  return COUNTRIES.find((c) => c.code === selectedCountryCode.value) || COUNTRIES[0]
+})
+
+// Automatically update phone dial code when country changes
+watch(selectedCountryCode, (newCode) => {
+  const matched = COUNTRIES.find((c) => c.code === newCode)
+  if (matched) {
+    selectedDialCode.value = matched.dialCode
+  }
+})
+
+const fullPhoneNumber = computed(() => {
+  if (!rawPhoneNumber.value.trim()) return ''
+  const cleanNum = rawPhoneNumber.value.trim().replace(/^[+]/, '')
+  if (rawPhoneNumber.value.trim().startsWith('+')) {
+    return rawPhoneNumber.value.trim()
+  }
+  return `${selectedDialCode.value}${cleanNum}`
+})
 
 const formState = reactive({
   name: '',
   username: '',
   email: '',
-  phone: '',
-  country: '',
   password: '',
 })
 
@@ -33,12 +58,12 @@ async function handleSignup() {
       name: formState.name,
       username: formState.username,
       email: formState.email,
-      phone: formState.phone || undefined,
-      country: formState.country || undefined,
+      phone: fullPhoneNumber.value || undefined,
+      country: selectedCountry.value?.name || undefined,
       password: formState.password,
     })
 
-    // Navigate to clean /verify route without exposing parameters in URL
+    // Navigate cleanly to /verify without URL parameters
     router.push('/verify')
   } catch (err: any) {
     localError.value = err.message || 'Registration failed.'
@@ -77,7 +102,7 @@ async function handleSignup() {
 
       <UForm :state="formState" class="space-y-4" @submit="handleSignup">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <UFormField label="Full Name" required>
+          <UFormField label="Full Name" required :error="authStore.fieldErrors.name">
             <UInput
               v-model="formState.name"
               placeholder="Pablo Dev"
@@ -86,7 +111,7 @@ async function handleSignup() {
             />
           </UFormField>
 
-          <UFormField label="Username" required>
+          <UFormField label="Username" required :error="authStore.fieldErrors.username">
             <UInput
               v-model="formState.username"
               placeholder="pablodev"
@@ -96,7 +121,7 @@ async function handleSignup() {
           </UFormField>
         </div>
 
-        <UFormField label="Email Address" required>
+        <UFormField label="Email Address" required :error="authStore.fieldErrors.email">
           <UInput
             v-model="formState.email"
             type="email"
@@ -106,27 +131,37 @@ async function handleSignup() {
           />
         </UFormField>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <UFormField label="Phone Number" help="Optional (e.g. +12025550143)">
+        <!-- Searchable Country Select -->
+        <UFormField label="Country" help="Search and select your country" :error="authStore.fieldErrors.country">
+          <USelectMenu
+            v-model="selectedCountryCode"
+            :items="COUNTRIES"
+            value-key="code"
+            label-key="label"
+            class="w-full"
+          />
+        </UFormField>
+
+        <!-- Searchable Dial Code + Phone Input -->
+        <UFormField label="Phone Number" help="Search dial code & enter number" :error="authStore.fieldErrors.phone">
+          <div class="flex gap-2">
+            <USelectMenu
+              v-model="selectedDialCode"
+              :items="COUNTRIES"
+              value-key="dialCode"
+              label-key="dialCode"
+              class="w-36 flex-shrink-0"
+            />
             <UInput
-              v-model="formState.phone"
-              placeholder="+12025550143"
+              v-model="rawPhoneNumber"
+              placeholder="9039215387"
               icon="i-lucide-phone"
-              class="w-full"
+              class="w-full flex-1"
             />
-          </UFormField>
+          </div>
+        </UFormField>
 
-          <UFormField label="Country" help="Optional (e.g. united states)">
-            <UInput
-              v-model="formState.country"
-              placeholder="united states"
-              icon="i-lucide-globe"
-              class="w-full"
-            />
-          </UFormField>
-        </div>
-
-        <UFormField label="Password" required help="Must be at least 8 characters">
+        <UFormField label="Password" required help="Must be at least 8 characters" :error="authStore.fieldErrors.password">
           <UInput
             v-model="formState.password"
             :type="showPassword ? 'text' : 'password'"

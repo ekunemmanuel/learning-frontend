@@ -84,7 +84,7 @@ async function handleSubmit() {
       />
 
       <UForm class="space-y-4" @submit="handleSubmit">
-        <UFormField label="Email, Username or Phone" required>
+        <UFormField label="Email, Username or Phone" required :error="authStore.fieldErrors.identifier">
           <UInput
             v-model="identifier"
             placeholder="pablodev"

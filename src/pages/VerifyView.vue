@@ -190,7 +190,7 @@ async function handleResend() {
       />
 
       <div class="space-y-6 text-center py-2">
-        <UFormField label="Enter 4-Digit Security Code" required class="flex flex-col items-center">
+        <UFormField label="Enter 4-Digit Security Code" required :error="authStore.fieldErrors.code" class="flex flex-col items-center">
           <div class="flex justify-center w-full mt-2">
             <UPinInput
               v-model="pinValue"

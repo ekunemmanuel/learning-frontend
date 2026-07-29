@@ -121,7 +121,7 @@ async function handleResetPassword() {
 
       <!-- Simplified Form: Only New Password & Confirm New Password -->
       <UForm :state="formState" class="space-y-4" @submit="handleResetPassword">
-        <UFormField label="New Password" required help="Must be at least 8 characters">
+        <UFormField label="New Password" required help="Must be at least 8 characters" :error="authStore.fieldErrors.newPassword">
           <UInput
             v-model="formState.newPassword"
             :type="showNewPassword ? 'text' : 'password'"
@@ -145,7 +145,7 @@ async function handleResetPassword() {
           </UInput>
         </UFormField>
 
-        <UFormField label="Confirm New Password" required>
+        <UFormField label="Confirm New Password" required :error="authStore.fieldErrors.confirmPassword">
           <UInput
             v-model="formState.confirmPassword"
             :type="showConfirmPassword ? 'text' : 'password'"

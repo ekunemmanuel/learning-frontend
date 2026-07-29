@@ -61,7 +61,7 @@ const router = createRouter({
 
 let isInitialCheckDone = false
 
-router.beforeEach(async (to, _from, next) => {
+router.beforeEach(async (to) => {
   const authStore = useAuthStore()
 
   if (!isInitialCheckDone) {
@@ -70,14 +70,12 @@ router.beforeEach(async (to, _from, next) => {
   }
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    return next({ path: '/login', query: { redirect: to.fullPath } })
+    return { path: '/login', query: { redirect: to.fullPath } }
   }
 
   if (to.meta.guestOnly && authStore.isAuthenticated) {
-    return next({ path: '/dashboard' })
+    return { path: '/dashboard' }
   }
-
-  next()
 })
 
 export default router
