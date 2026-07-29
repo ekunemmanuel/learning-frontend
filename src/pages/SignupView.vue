@@ -38,14 +38,8 @@ async function handleSignup() {
       password: formState.password,
     })
 
-    router.push({
-      path: '/verify',
-      query: {
-        email: formState.email,
-        identifier: formState.username || formState.email,
-        type: 'email_verification',
-      },
-    })
+    // Navigate to clean /verify route without exposing parameters in URL
+    router.push('/verify')
   } catch (err: any) {
     localError.value = err.message || 'Registration failed.'
   } finally {
@@ -169,7 +163,7 @@ async function handleSignup() {
       <template #footer>
         <p class="text-center text-sm text-gray-500 dark:text-gray-400">
           Already have an account?
-          <RouterLink to="/login" class="text-primary-600 hover:text-primary-500 dark:text-primary-400 font-semibold ml-1">
+          <RouterLink to="/login" class="text-primary hover:text-primary-500 font-semibold ml-1">
             Sign in
           </RouterLink>
         </p>

@@ -14,8 +14,8 @@ const formState = reactive({
 
 const showPassword = ref(false)
 const mfaPin = ref<string[]>([])
+const backupCodePin = ref<string[]>([])
 const isUsingBackupCode = ref(false)
-const backupCodeText = ref('')
 
 const isSubmitting = ref(false)
 const localError = ref<string | null>(null)
@@ -43,11 +43,13 @@ async function handleLogin() {
 }
 
 async function handleMfaSubmit() {
-  const code = isUsingBackupCode.value ? backupCodeText.value.trim() : mfaPin.value.join('')
+  const code = isUsingBackupCode.value
+    ? backupCodePin.value.join('')
+    : mfaPin.value.join('')
   
-  if (!code) {
+  if (isUsingBackupCode.value ? code.length < 8 : code.length < 6) {
     localError.value = isUsingBackupCode.value
-      ? 'Please enter your emergency backup code.'
+      ? 'Please enter all 8 characters of your emergency backup code.'
       : 'Please enter all 6 digits of your authenticator code.'
     return
   }
@@ -69,7 +71,7 @@ async function handleMfaSubmit() {
 function cancelMfa() {
   authStore.cancelMfaStep()
   mfaPin.value = []
-  backupCodeText.value = ''
+  backupCodePin.value = []
   isUsingBackupCode.value = false
   localError.value = null
 }
@@ -105,7 +107,7 @@ function cancelMfa() {
       <!-- MFA Step 2 Form -->
       <div v-if="authStore.mfaRequired" class="space-y-4">
         <UFormField
-          :label="isUsingBackupCode ? '8-Character Emergency Backup Code' : '6-Digit Authenticator Code'"
+          :label="isUsingBackupCode ? '8-Character Backup Code (e.g. CU3C-KG3D)' : '6-Digit Authenticator Code'"
           required
           class="flex flex-col items-center"
         >
@@ -122,17 +124,19 @@ function cancelMfa() {
             />
           </div>
 
-          <!-- Emergency Backup Code Input -->
-          <UInput
-            v-else
-            v-model="backupCodeText"
-            placeholder="e.g. a1b2c3d4"
-            icon="i-lucide-key-square"
-            size="lg"
-            class="w-full mt-2"
-            autofocus
-            @keyup.enter="handleMfaSubmit"
-          />
+          <!-- Emergency Backup Code OTP Input (8 chars with hyphen separator at 4) -->
+          <div v-else class="flex justify-center w-full mt-2">
+            <UPinInput
+              v-model="backupCodePin"
+              :length="8"
+              :separator="4"
+              type="text"
+              otp
+              size="lg"
+              class="gap-1.5"
+              @complete="handleMfaSubmit"
+            />
+          </div>
         </UFormField>
 
         <!-- Toggle between 6-digit TOTP and Backup code -->
@@ -141,7 +145,7 @@ function cancelMfa() {
             color="neutral"
             variant="link"
             size="xs"
-            class="text-xs text-primary-600 hover:text-primary-500"
+            class="text-xs text-primary hover:text-primary-500"
             @click="isUsingBackupCode = !isUsingBackupCode"
           >
             {{ isUsingBackupCode ? 'Use 6-digit authenticator code instead' : 'Use emergency backup code instead' }}
@@ -184,7 +188,7 @@ function cancelMfa() {
 
         <UFormField label="Password" required>
           <template #hint>
-            <RouterLink to="/forgot-password" class="text-xs text-primary-600 hover:text-primary-500 font-medium">
+            <RouterLink to="/forgot-password" class="text-xs text-primary hover:text-primary-500 font-medium">
               Forgot password?
             </RouterLink>
           </template>
@@ -225,7 +229,7 @@ function cancelMfa() {
       <template #footer>
         <p class="text-center text-sm text-gray-500 dark:text-gray-400">
           Don't have an account?
-          <RouterLink to="/signup" class="text-primary-600 hover:text-primary-500 dark:text-primary-400 font-semibold ml-1">
+          <RouterLink to="/signup" class="text-primary hover:text-primary-500 font-semibold ml-1">
             Create an account
           </RouterLink>
         </p>

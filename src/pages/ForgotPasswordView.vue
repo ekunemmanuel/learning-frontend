@@ -28,14 +28,15 @@ async function handleSubmit() {
     })
     message.value = msg || 'Password reset OTP code sent successfully.'
 
+    authStore.setPendingVerification({
+      identifier: identifier.value,
+      email: identifier.value,
+      type: 'password_reset',
+    })
+
     setTimeout(() => {
-      router.push({
-        path: '/verify',
-        query: {
-          identifier: identifier.value,
-          type: 'password_reset',
-        },
-      })
+      // Clean route without sensitive URL parameters
+      router.push('/verify')
     }, 1200)
   } catch (err: any) {
     localError.value = err.message || 'Failed to request password reset code.'
@@ -109,7 +110,7 @@ async function handleSubmit() {
       <template #footer>
         <p class="text-center text-sm text-gray-500 dark:text-gray-400">
           Remembered your password?
-          <RouterLink to="/login" class="text-primary-600 hover:text-primary-500 dark:text-primary-400 font-semibold ml-1">
+          <RouterLink to="/login" class="text-primary hover:text-primary-500 font-semibold ml-1">
             Back to Sign In
           </RouterLink>
         </p>

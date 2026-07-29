@@ -10,6 +10,7 @@ export interface UserProfile {
   emailVerifiedAt: string | null
   isPhoneVerified: boolean
   phoneVerifiedAt: string | null
+  isMfaEnabled: boolean
 }
 
 export interface MinimalUser {
@@ -69,8 +70,9 @@ export interface ResetPasswordPayload {
 export interface MfaSetupResponseData {
   methodId?: string
   secret?: string
-  otpauthUrl?: string
+  qrCodePayload?: string
   qrCodeDataUrl?: string
+  isMfaEnabled?: boolean
 }
 
 export interface MfaVerifyPayload {

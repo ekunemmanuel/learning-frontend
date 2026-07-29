@@ -7,16 +7,20 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
-// Dynamic verification type from query params
+// Dynamic verification type from store context or route fallback
 const verifyType = computed<'email_verification' | 'phone_verification' | 'password_reset'>(() => {
-  const t = route.query.type as string
-  if (t === 'password_reset' || t === 'phone_verification') return t
-  return 'email_verification'
+  return (
+    authStore.pendingVerification?.type ||
+    (route.query.type as any) ||
+    'email_verification'
+  )
 })
 
 // Email destination display
 const emailAddress = computed(() => {
   return (
+    authStore.pendingVerification?.email ||
+    authStore.pendingVerification?.identifier ||
     (route.query.email as string) ||
     (route.query.identifier as string) ||
     authStore.lastRegisteredIdentifier ||
@@ -27,6 +31,8 @@ const emailAddress = computed(() => {
 
 const identifier = computed(() => {
   return (
+    authStore.pendingVerification?.identifier ||
+    authStore.pendingVerification?.email ||
     (route.query.identifier as string) ||
     (route.query.email as string) ||
     authStore.lastRegisteredIdentifier ||
@@ -94,11 +100,16 @@ async function handleVerify() {
 
     setTimeout(() => {
       if (verifyType.value === 'password_reset') {
-        router.push({
-          path: '/reset-password',
-          query: { identifier: identifier.value, code },
+        // Store verified code in memory state and navigate cleanly without URL parameters
+        authStore.setPendingVerification({
+          identifier: identifier.value,
+          email: emailAddress.value,
+          code,
+          type: 'password_reset',
         })
+        router.push('/reset-password')
       } else {
+        authStore.clearPendingVerification()
         router.push('/login')
       }
     }, 1200)
@@ -227,7 +238,7 @@ async function handleResend() {
 
           <!-- Navigation Back Links -->
           <div class="flex items-center justify-between text-xs border-t border-gray-100 dark:border-gray-800 pt-3">
-            <RouterLink to="/login" class="text-primary-600 hover:text-primary-500 dark:text-primary-400 font-medium flex items-center gap-1">
+            <RouterLink to="/login" class="text-primary hover:text-primary-500 font-medium flex items-center gap-1">
               <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
               Back to Sign In
             </RouterLink>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { reactive, ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 
@@ -7,10 +7,26 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
-// Identifier and code are preserved from URL query parameters (set during verification step)
+// Read authorization details from store or route fallback
+const identifier = computed(() => {
+  return (
+    authStore.pendingVerification?.identifier ||
+    authStore.pendingVerification?.email ||
+    (route.query.identifier as string) ||
+    authStore.lastRegisteredIdentifier ||
+    ''
+  )
+})
+
+const code = computed(() => {
+  return (
+    authStore.pendingVerification?.code ||
+    (route.query.code as string) ||
+    ''
+  )
+})
+
 const formState = reactive({
-  identifier: (route.query.identifier as string) || authStore.lastRegisteredIdentifier || '',
-  code: (route.query.code as string) || '',
   newPassword: '',
   confirmPassword: '',
 })
@@ -37,8 +53,8 @@ async function handleResetPassword() {
     return
   }
 
-  if (!formState.identifier || !formState.code) {
-    localError.value = 'Missing password reset authorization code. Please request a new reset link.'
+  if (!identifier.value || !code.value) {
+    localError.value = 'Missing password reset authorization code. Please request a new reset code.'
     return
   }
 
@@ -48,8 +64,8 @@ async function handleResetPassword() {
 
   try {
     const msg = await authStore.resetPassword({
-      identifier: formState.identifier,
-      code: formState.code,
+      identifier: identifier.value,
+      code: code.value,
       newPassword: formState.newPassword,
     })
 
@@ -167,7 +183,7 @@ async function handleResetPassword() {
       <template #footer>
         <p class="text-center text-sm text-gray-500 dark:text-gray-400">
           Remembered your password?
-          <RouterLink to="/login" class="text-primary-600 hover:text-primary-500 dark:text-primary-400 font-semibold ml-1">
+          <RouterLink to="/login" class="text-primary hover:text-primary-500 font-semibold ml-1">
             Back to Sign In
           </RouterLink>
         </p>

@@ -10,6 +10,13 @@ import type {
   VerifyPayload,
 } from '../types/auth'
 
+export interface PendingVerification {
+  identifier: string
+  email: string
+  code?: string
+  type?: 'email_verification' | 'phone_verification' | 'password_reset'
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<UserProfile | null>(null)
   const isAuthenticated = ref<boolean>(false)
@@ -20,7 +27,8 @@ export const useAuthStore = defineStore('auth', () => {
   const mfaRequired = ref<boolean>(false)
   const pendingCredentials = ref<{ identifier: string; password: string } | null>(null)
 
-  // Verification Helper State
+  // Verification Context State (avoids passing sensitive codes in URL query params)
+  const pendingVerification = ref<PendingVerification | null>(null)
   const lastRegisteredIdentifier = ref<string>('')
 
   // MFA Setup State
@@ -29,9 +37,22 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isEmailVerified = computed(() => !!user.value?.isEmailVerified)
   const isPhoneVerified = computed(() => !!user.value?.isPhoneVerified)
+  const isMfaEnabled = computed(() => !!user.value?.isMfaEnabled)
 
   function clearError() {
     error.value = null
+  }
+
+  function setPendingVerification(data: PendingVerification) {
+    pendingVerification.value = { ...pendingVerification.value, ...data }
+  }
+
+  function clearPendingVerification() {
+    pendingVerification.value = null
+  }
+
+  function clearBackupCodes() {
+    backupCodes.value = []
   }
 
   async function fetchUser(): Promise<UserProfile | null> {
@@ -104,7 +125,11 @@ export const useAuthStore = defineStore('auth', () => {
     clearError()
     try {
       const res = await authService.signup(payload)
-      lastRegisteredIdentifier.value = payload.username || payload.email
+      setPendingVerification({
+        identifier: payload.username || payload.email,
+        email: payload.email,
+        type: 'email_verification',
+      })
       return res.message
     } catch (err: any) {
       error.value = err.message || 'Registration failed.'
@@ -150,6 +175,7 @@ export const useAuthStore = defineStore('auth', () => {
     clearError()
     try {
       const res = await authService.resetPassword(payload)
+      clearPendingVerification()
       return res.message
     } catch (err: any) {
       error.value = err.message || 'Failed to reset password.'
@@ -207,6 +233,7 @@ export const useAuthStore = defineStore('auth', () => {
       pendingCredentials.value = null
       mfaSetupData.value = null
       backupCodes.value = []
+      pendingVerification.value = null
       isLoading.value = false
     }
   }
@@ -223,12 +250,17 @@ export const useAuthStore = defineStore('auth', () => {
     error,
     mfaRequired,
     pendingCredentials,
+    pendingVerification,
     lastRegisteredIdentifier,
     mfaSetupData,
     backupCodes,
     isEmailVerified,
     isPhoneVerified,
+    isMfaEnabled,
     clearError,
+    setPendingVerification,
+    clearPendingVerification,
+    clearBackupCodes,
     fetchUser,
     login,
     loginMfa,
