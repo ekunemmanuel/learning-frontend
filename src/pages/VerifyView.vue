@@ -7,6 +7,13 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
+// Dynamic verification type from query params
+const verifyType = computed<'email_verification' | 'phone_verification' | 'password_reset'>(() => {
+  const t = route.query.type as string
+  if (t === 'password_reset' || t === 'phone_verification') return t
+  return 'email_verification'
+})
+
 // Email destination display
 const emailAddress = computed(() => {
   return (
@@ -28,7 +35,7 @@ const identifier = computed(() => {
   )
 })
 
-// Pin Input state (array of 4 digits or string array)
+// Pin Input state (array of 4 digits)
 const pinValue = ref<string[]>([])
 const isSubmitting = ref(false)
 const isResending = ref(false)
@@ -80,13 +87,13 @@ async function handleVerify() {
     const msg = await authStore.verifyCode({
       identifier: identifier.value,
       code,
-      type: 'email_verification',
+      type: verifyType.value,
     })
 
-    message.value = msg || 'Account verified successfully!'
+    message.value = msg || 'Code verified successfully!'
 
     setTimeout(() => {
-      if (route.query.type === 'password_reset') {
+      if (verifyType.value === 'password_reset') {
         router.push({
           path: '/reset-password',
           query: { identifier: identifier.value, code },
@@ -117,7 +124,7 @@ async function handleResend() {
   try {
     const msg = await authStore.resendOtp({
       identifier: identifier.value,
-      purpose: (route.query.type as any) || 'email_verification',
+      purpose: verifyType.value,
     })
     message.value = msg || 'A new 4-digit code has been sent to your email.'
     startTimer(60)
@@ -138,7 +145,7 @@ async function handleResend() {
             <UIcon name="i-lucide-mail-check" class="w-6 h-6" />
           </div>
           <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Check Your Email
+            {{ verifyType === 'password_reset' ? 'Reset Password Verification' : 'Check Your Email' }}
           </h1>
           <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
             We sent a 4-digit verification code to
@@ -200,20 +207,38 @@ async function handleResend() {
       </div>
 
       <template #footer>
-        <div class="flex items-center justify-between text-sm">
-          <span class="text-gray-500 dark:text-gray-400">Didn't receive the code?</span>
-          <UButton
-            color="neutral"
-            variant="ghost"
-            size="sm"
-            :disabled="timerSeconds > 0 || isResending"
-            :loading="isResending"
-            icon="i-lucide-rotate-cw"
-            @click="handleResend"
-          >
-            <span v-if="timerSeconds > 0">Resend in {{ formattedTimer }}</span>
-            <span v-else>Resend OTP</span>
-          </UButton>
+        <div class="space-y-4 pt-1">
+          <!-- Resend Section -->
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-gray-500 dark:text-gray-400">Didn't receive the code?</span>
+            <UButton
+              color="neutral"
+              variant="ghost"
+              size="sm"
+              :disabled="timerSeconds > 0 || isResending"
+              :loading="isResending"
+              icon="i-lucide-rotate-cw"
+              @click="handleResend"
+            >
+              <span v-if="timerSeconds > 0">Resend in {{ formattedTimer }}</span>
+              <span v-else>Resend OTP</span>
+            </UButton>
+          </div>
+
+          <!-- Navigation Back Links -->
+          <div class="flex items-center justify-between text-xs border-t border-gray-100 dark:border-gray-800 pt-3">
+            <RouterLink to="/login" class="text-primary-600 hover:text-primary-500 dark:text-primary-400 font-medium flex items-center gap-1">
+              <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
+              Back to Sign In
+            </RouterLink>
+
+            <RouterLink
+              :to="verifyType === 'password_reset' ? '/forgot-password' : '/signup'"
+              class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-medium"
+            >
+              {{ verifyType === 'password_reset' ? 'Use another account' : 'Change email' }}
+            </RouterLink>
+          </div>
         </div>
       </template>
     </UCard>

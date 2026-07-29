@@ -86,9 +86,10 @@ export const authService = {
     })
   },
 
-  logout(): Promise<ApiResponse<null>> {
+  logout(refreshToken?: string): Promise<ApiResponse<null>> {
     return request<null>('/logout', {
       method: 'POST',
+      body: JSON.stringify({ refreshToken: refreshToken || '' }),
     })
   },
 
