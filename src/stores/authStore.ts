@@ -27,8 +27,17 @@ export const useAuthStore = defineStore('auth', () => {
   const mfaRequired = ref<boolean>(false)
   const pendingCredentials = ref<{ identifier: string; password: string } | null>(null)
 
-  // Verification Context State (avoids passing sensitive codes in URL query params)
-  const pendingVerification = ref<PendingVerification | null>(null)
+  function loadSavedPendingVerification(): PendingVerification | null {
+    try {
+      const stored = sessionStorage.getItem('pending_verification')
+      return stored ? JSON.parse(stored) : null
+    } catch (e) {
+      return null
+    }
+  }
+
+  // Verification Context State (persisted in sessionStorage across page reloads)
+  const pendingVerification = ref<PendingVerification | null>(loadSavedPendingVerification())
   const lastRegisteredIdentifier = ref<string>('')
 
   // MFA Setup State
@@ -44,11 +53,18 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function setPendingVerification(data: PendingVerification) {
-    pendingVerification.value = { ...pendingVerification.value, ...data }
+    const updated = { ...(pendingVerification.value || {}), ...data } as PendingVerification
+    pendingVerification.value = updated
+    try {
+      sessionStorage.setItem('pending_verification', JSON.stringify(updated))
+    } catch (e) {}
   }
 
   function clearPendingVerification() {
     pendingVerification.value = null
+    try {
+      sessionStorage.removeItem('pending_verification')
+    } catch (e) {}
   }
 
   function clearBackupCodes() {

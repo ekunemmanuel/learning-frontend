@@ -1,11 +1,16 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+
+onMounted(() => {
+  // Clear any stale verification data when returning to the login page
+  authStore.clearPendingVerification()
+})
 
 const formState = reactive({
   identifier: '',
