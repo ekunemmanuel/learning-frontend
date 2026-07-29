@@ -105,7 +105,7 @@ export const authService = {
   setupMfa(): Promise<ApiResponse<MfaSetupResponseData>> {
     return request<MfaSetupResponseData>('/mfa/setup', {
       method: 'POST',
-      body: JSON.stringify({ type: 'totp', name: 'Google Authenticator' }),
+      body: JSON.stringify({ type: 'totp', name: 'Authenticator' }),
     })
   },
 
