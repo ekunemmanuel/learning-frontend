@@ -261,7 +261,7 @@ async function handleLogout() {
         </div>
 
         <!-- Re-configure 2FA Button (Already Active State) -->
-        <div v-else-if="is2FaActive && !authStore.mfaSetupData" class="py-2 flex items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-4">
+        <div v-else-if="is2FaActive && !authStore.mfaSetupData" class="flex items-center justify-between">
           <div>
             <p class="text-sm font-medium text-gray-900 dark:text-white">Re-configure Authenticator App</p>
             <p class="text-xs text-gray-500">Scan a new QR code to replace your existing 2FA key</p>
@@ -279,7 +279,7 @@ async function handleLogout() {
 
         <!-- QR Code & 6-digit OTP Setup Step -->
         <div v-else-if="authStore.mfaSetupData" class="space-y-6 pt-2">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center border-t border-gray-100 dark:border-gray-800 pt-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
             
             <!-- QR Image -->
             <div class="flex flex-col items-center justify-center p-4 bg-white rounded-lg border border-gray-200">
@@ -296,7 +296,7 @@ async function handleLogout() {
             <div class="space-y-4">
               <div>
                 <span class="text-xs font-semibold text-gray-400 uppercase">Base32 Secret Key (Manual Entry)</span>
-                <div class="mt-1 p-3 bg-gray-100 dark:bg-gray-900 rounded font-mono text-sm tracking-wider font-bold text-gray-900 dark:text-white select-all">
+                <div class="px-3 py-2 bg-blue-50 dark:bg-blue-950 rounded font-mono text-sm tracking-wider font-bold text-gray-900 dark:text-white select-all">
                   {{ authStore.mfaSetupData.secret }}
                 </div>
               </div>

@@ -150,7 +150,7 @@ async function handleSignup() {
               :items="COUNTRIES"
               value-key="dialCode"
               label-key="dialCode"
-              class="w-36 flex-shrink-0"
+              class="w-24 shrink-0"
             />
             <UInput
               v-model="rawPhoneNumber"

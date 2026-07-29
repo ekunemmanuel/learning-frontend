@@ -16,7 +16,9 @@
     "format": "oxfmt src/"
   },
   "dependencies": {
+    "@countrystatecity/countries-browser": "^1.0.2",
     "@nuxt/ui": "^4.10.0",
+    "country-state-city": "^3.2.1",
     "pinia": "^4.0.2",
     "tailwindcss": "^4.3.3",
     "vue": "rc",
