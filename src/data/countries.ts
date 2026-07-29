@@ -1,4 +1,4 @@
-import { Country, type ICountry } from 'country-state-city'
+import { Country } from 'country-state-city'
 
 export interface CountryItem {
   label: string
@@ -8,19 +8,26 @@ export interface CountryItem {
   flag: string
 }
 
-const rawCountries: ICountry[] = Country.getAllCountries() || []
+const list: CountryItem[] = []
+const allCountries = Country.getAllCountries() || []
 
-export const COUNTRIES: CountryItem[] = rawCountries
-  .filter((c): c is ICountry => Boolean(c && c.phonecode))
-  .map((c) => {
-    const phone = c.phonecode || ''
-    const rawCode = phone.split(' and ')[0].split(' or ')[0].trim()
+for (const c of allCountries) {
+  if (c && typeof c.phonecode === 'string' && c.phonecode.trim().length > 0) {
+    const phoneCode: string = c.phonecode
+    const parts1 = phoneCode.split(' and ')
+    const firstPart = parts1[0] || ''
+    const parts2 = firstPart.split(' or ')
+    const rawCode = (parts2[0] || '').trim()
     const cleanDialCode = rawCode.startsWith('+') ? rawCode : `+${rawCode}`
-    return {
+
+    list.push({
       label: `${c.flag || ''} ${c.name} (${cleanDialCode})`,
       name: c.name,
       code: c.isoCode,
       dialCode: cleanDialCode,
       flag: c.flag || '',
-    }
-  })
+    })
+  }
+}
+
+export const COUNTRIES: CountryItem[] = list
