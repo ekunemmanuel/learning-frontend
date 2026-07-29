@@ -56,7 +56,8 @@ async function handleActivateMfa() {
     const methodId = authStore.mfaSetupData?.methodId || ''
     await authStore.verifyMfa(methodId, code)
     authStore.mfaSetupData = null
-    localSuccess.value = 'Two-Factor Authentication successfully activated! Please save your emergency backup codes below.'
+    localSuccess.value =
+      'Two-Factor Authentication successfully activated! Please save your emergency backup codes below.'
   } catch (err: any) {
     localError.value = err.message || 'Verification failed. Please check the code.'
   } finally {
@@ -83,7 +84,6 @@ async function handleLogout() {
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-950 py-8 px-4 sm:px-6 lg:px-8">
     <div class="max-w-4xl mx-auto space-y-6">
-      
       <!-- Top Bar / Navigation -->
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
@@ -126,7 +126,9 @@ async function handleLogout() {
           <div class="space-y-1">
             <span class="text-xs font-semibold uppercase text-gray-400">Email Address</span>
             <div class="flex items-center gap-2">
-              <span class="text-base font-medium text-gray-900 dark:text-white">{{ authStore.user?.email }}</span>
+              <span class="text-base font-medium text-gray-900 dark:text-white">{{
+                authStore.user?.email
+              }}</span>
               <UBadge
                 :color="authStore.isEmailVerified ? 'success' : 'warning'"
                 variant="soft"
@@ -140,7 +142,9 @@ async function handleLogout() {
           <div class="space-y-1">
             <span class="text-xs font-semibold uppercase text-gray-400">Phone Number</span>
             <div class="flex items-center gap-2">
-              <span class="text-base font-medium text-gray-900 dark:text-white">{{ authStore.user?.phone || 'Not provided' }}</span>
+              <span class="text-base font-medium text-gray-900 dark:text-white">{{
+                authStore.user?.phone || 'Not provided'
+              }}</span>
               <UBadge
                 v-if="authStore.user?.phone"
                 :color="authStore.isPhoneVerified ? 'success' : 'warning'"
@@ -160,9 +164,16 @@ async function handleLogout() {
           </div>
 
           <div class="space-y-1">
-            <span class="text-xs font-semibold uppercase text-gray-400">Verification Timestamps</span>
+            <span class="text-xs font-semibold uppercase text-gray-400"
+              >Verification Timestamps</span
+            >
             <p class="text-xs text-gray-500">
-              Email Verified: {{ authStore.user?.emailVerifiedAt ? new Date(authStore.user.emailVerifiedAt).toLocaleString() : 'N/A' }}
+              Email Verified:
+              {{
+                authStore.user?.emailVerifiedAt
+                  ? new Date(authStore.user.emailVerifiedAt).toLocaleString()
+                  : 'N/A'
+              }}
             </p>
           </div>
         </div>
@@ -175,8 +186,13 @@ async function handleLogout() {
             <div class="flex items-center gap-3">
               <UIcon name="i-lucide-shield-check" class="w-6 h-6 text-primary-500" />
               <div>
-                <h2 class="text-lg font-bold text-gray-900 dark:text-white">Two-Factor Authentication (MFA)</h2>
-                <p class="text-xs text-gray-500">Protect your account using Google Authenticator, Microsoft Authenticator, or 1Password</p>
+                <h2 class="text-lg font-bold text-gray-900 dark:text-white">
+                  Two-Factor Authentication (MFA)
+                </h2>
+                <p class="text-xs text-gray-500">
+                  Protect your account using Google Authenticator, Microsoft Authenticator, or
+                  1Password
+                </p>
               </div>
             </div>
 
@@ -214,9 +230,14 @@ async function handleLogout() {
         />
 
         <!-- One-Time Active 2FA Backup Codes Banner (Shown ONLY upon immediate activation) -->
-        <div v-if="authStore.backupCodes.length > 0" class="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 space-y-3 mb-4">
+        <div
+          v-if="authStore.backupCodes.length > 0"
+          class="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 space-y-3 mb-4"
+        >
           <div class="flex items-center justify-between">
-            <h3 class="font-bold text-emerald-800 dark:text-emerald-300 text-sm flex items-center gap-2">
+            <h3
+              class="font-bold text-emerald-800 dark:text-emerald-300 text-sm flex items-center gap-2"
+            >
               <UIcon name="i-lucide-key-square" class="w-5 h-5" />
               Emergency Recovery Backup Codes (One-Time Display)
             </h3>
@@ -231,7 +252,8 @@ async function handleLogout() {
             </UButton>
           </div>
           <p class="text-xs text-emerald-700 dark:text-emerald-400">
-            Save these emergency backup codes now. They are displayed only once and will not be visible after you leave this page.
+            Save these emergency backup codes now. They are displayed only once and will not be
+            visible after you leave this page.
           </p>
           <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 font-mono text-xs text-center">
             <div
@@ -245,9 +267,14 @@ async function handleLogout() {
         </div>
 
         <!-- Initial Setup Button (Unconfigured State) -->
-        <div v-if="!authStore.mfaSetupData && !is2FaActive" class="py-2 flex items-center justify-between">
+        <div
+          v-if="!authStore.mfaSetupData && !is2FaActive"
+          class="py-2 flex items-center justify-between"
+        >
           <div>
-            <p class="text-sm font-medium text-gray-900 dark:text-white">Authenticator App Integration</p>
+            <p class="text-sm font-medium text-gray-900 dark:text-white">
+              Authenticator App Integration
+            </p>
             <p class="text-xs text-gray-500">Generate a Base32 secret key and QR code</p>
           </div>
           <UButton
@@ -261,9 +288,14 @@ async function handleLogout() {
         </div>
 
         <!-- Re-configure 2FA Button (Already Active State) -->
-        <div v-else-if="is2FaActive && !authStore.mfaSetupData" class="flex items-center justify-between">
+        <div
+          v-else-if="is2FaActive && !authStore.mfaSetupData"
+          class="flex items-center justify-between"
+        >
           <div>
-            <p class="text-sm font-medium text-gray-900 dark:text-white">Re-configure Authenticator App</p>
+            <p class="text-sm font-medium text-gray-900 dark:text-white">
+              Re-configure Authenticator App
+            </p>
             <p class="text-xs text-gray-500">Scan a new QR code to replace your existing 2FA key</p>
           </div>
           <UButton
@@ -280,29 +312,40 @@ async function handleLogout() {
         <!-- QR Code & 6-digit OTP Setup Step -->
         <div v-else-if="authStore.mfaSetupData" class="space-y-6 pt-2">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-            
             <!-- QR Image -->
-            <div class="flex flex-col items-center justify-center p-4 bg-white rounded-lg border border-gray-200">
+            <div
+              class="flex flex-col items-center justify-center p-4 bg-white rounded-lg border border-gray-200"
+            >
               <img
                 v-if="authStore.mfaSetupData.qrCodeDataUrl"
                 :src="authStore.mfaSetupData.qrCodeDataUrl"
                 alt="Authenticator QR Code"
                 class="w-48 h-48 object-contain"
               />
-              <p class="text-xs text-gray-500 mt-2 text-center">Scan with Google Authenticator or Authy</p>
+              <p class="text-xs text-gray-500 mt-2 text-center">
+                Scan with Google Authenticator or Authy
+              </p>
             </div>
 
             <!-- Manual Secret Key & 6-Digit OTP Pin Input -->
             <div class="space-y-4">
               <div>
-                <span class="text-xs font-semibold text-gray-400 uppercase">Base32 Secret Key (Manual Entry)</span>
-                <div class="px-3 py-2 bg-blue-50 dark:bg-blue-950 rounded font-mono text-sm tracking-wider font-bold text-gray-900 dark:text-white select-all">
+                <span class="text-xs font-semibold text-gray-400 uppercase"
+                  >Base32 Secret Key (Manual Entry)</span
+                >
+                <div
+                  class="px-3 py-2 bg-blue-50 dark:bg-blue-950 rounded font-mono text-sm tracking-wider font-bold text-gray-900 dark:text-white select-all"
+                >
                   {{ authStore.mfaSetupData.secret }}
                 </div>
               </div>
 
               <!-- Activation UPinInput (6 Digits) -->
-              <UFormField label="Step 2: Enter 6-digit code from app" required class="flex flex-col items-center">
+              <UFormField
+                label="Step 2: Enter 6-digit code from app"
+                required
+                class="flex flex-col items-center"
+              >
                 <div class="flex justify-center w-full mt-2">
                   <UPinInput
                     v-model="mfaConfirmationPin"
@@ -327,11 +370,9 @@ async function handleLogout() {
                 Verify & Enable 2FA
               </UButton>
             </div>
-
           </div>
         </div>
       </UCard>
-
     </div>
   </div>
 </template>

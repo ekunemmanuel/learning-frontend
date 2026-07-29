@@ -48,10 +48,8 @@ async function handleLogin() {
 }
 
 async function handleMfaSubmit() {
-  const rawCode = isUsingBackupCode.value
-    ? backupCodePin.value.join('')
-    : mfaPin.value.join('')
-  
+  const rawCode = isUsingBackupCode.value ? backupCodePin.value.join('') : mfaPin.value.join('')
+
   // Strip hyphens or whitespace before sending payload to backend
   const code = rawCode.replace(/[- ]/g, '')
 
@@ -90,14 +88,20 @@ function cancelMfa() {
     <UCard class="w-full max-w-md shadow-xl border border-gray-200 dark:border-gray-800">
       <template #header>
         <div class="text-center space-y-2">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-600 dark:text-primary-400 mb-1">
+          <div
+            class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-600 dark:text-primary-400 mb-1"
+          >
             <UIcon name="i-lucide-lock" class="w-6 h-6" />
           </div>
           <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
             {{ authStore.mfaRequired ? 'Two-Factor Verification' : 'Sign in to your account' }}
           </h1>
           <p class="text-sm text-gray-500 dark:text-gray-400">
-            {{ authStore.mfaRequired ? 'Enter the code from your authenticator app or emergency backup code' : 'Enter your credentials to access your dashboard' }}
+            {{
+              authStore.mfaRequired
+                ? 'Enter the code from your authenticator app or emergency backup code'
+                : 'Enter your credentials to access your dashboard'
+            }}
           </p>
         </div>
       </template>
@@ -115,7 +119,9 @@ function cancelMfa() {
       <!-- MFA Step 2 Form -->
       <div v-if="authStore.mfaRequired" class="space-y-4">
         <UFormField
-          :label="isUsingBackupCode ? '8-Character Emergency Backup Code' : '6-Digit Authenticator Code'"
+          :label="
+            isUsingBackupCode ? '8-Character Emergency Backup Code' : '6-Digit Authenticator Code'
+          "
           required
           :error="authStore.fieldErrors.mfaCode"
           class="flex flex-col items-center"
@@ -156,34 +162,46 @@ function cancelMfa() {
             class="text-xs text-primary hover:text-primary-500"
             @click="isUsingBackupCode = !isUsingBackupCode"
           >
-            {{ isUsingBackupCode ? 'Use 6-digit authenticator code instead' : 'Use emergency backup code instead' }}
+            {{
+              isUsingBackupCode
+                ? 'Use 6-digit authenticator code instead'
+                : 'Use emergency backup code instead'
+            }}
           </UButton>
         </div>
 
         <div class="flex gap-3">
-          <UButton
-            color="neutral"
-            variant="outline"
-            class="flex-1"
-            :disabled="isSubmitting"
-            @click="cancelMfa"
-          >
-            Back to Login
-          </UButton>
-          <UButton
-            color="primary"
-            class="flex-1"
-            :loading="isSubmitting"
-            @click="handleMfaSubmit"
-          >
-            Verify & Sign In
-          </UButton>
+          <div class="flex-1">
+            <UButton
+              color="neutral"
+              variant="outline"
+              :disabled="isSubmitting"
+              @click="cancelMfa"
+              class="block w-full"
+            >
+              Back to Login
+            </UButton>
+          </div>
+          <div class="flex-1">
+            <UButton
+              color="primary"
+              :loading="isSubmitting"
+              @click="handleMfaSubmit"
+              class="block w-full"
+            >
+              Verify & Sign In
+            </UButton>
+          </div>
         </div>
       </div>
 
       <!-- Step 1 Login Form -->
       <UForm v-else :state="formState" class="space-y-4" @submit="handleLogin">
-        <UFormField label="Email, Username or Phone" required :error="authStore.fieldErrors.identifier">
+        <UFormField
+          label="Email, Username or Phone"
+          required
+          :error="authStore.fieldErrors.identifier"
+        >
           <UInput
             v-model="formState.identifier"
             placeholder="you@example.com or pablodev"
@@ -196,7 +214,10 @@ function cancelMfa() {
 
         <UFormField label="Password" required :error="authStore.fieldErrors.password">
           <template #hint>
-            <RouterLink to="/forgot-password" class="text-xs text-primary hover:text-primary-500 font-medium">
+            <RouterLink
+              to="/forgot-password"
+              class="text-xs text-primary hover:text-primary-500 font-medium"
+            >
               Forgot password?
             </RouterLink>
           </template>

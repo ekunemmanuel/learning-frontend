@@ -51,7 +51,9 @@ async function handleSubmit() {
     <UCard class="w-full max-w-md shadow-xl border border-gray-200 dark:border-gray-800">
       <template #header>
         <div class="text-center space-y-2">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-600 dark:text-primary-400 mb-1">
+          <div
+            class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-600 dark:text-primary-400 mb-1"
+          >
             <UIcon name="i-lucide-key" class="w-6 h-6" />
           </div>
           <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
@@ -84,7 +86,11 @@ async function handleSubmit() {
       />
 
       <UForm class="space-y-4" @submit="handleSubmit">
-        <UFormField label="Email, Username or Phone" required :error="authStore.fieldErrors.identifier">
+        <UFormField
+          label="Email, Username or Phone"
+          required
+          :error="authStore.fieldErrors.identifier"
+        >
           <UInput
             v-model="identifier"
             placeholder="pablodev"

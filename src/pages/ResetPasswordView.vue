@@ -19,11 +19,7 @@ const identifier = computed(() => {
 })
 
 const code = computed(() => {
-  return (
-    authStore.pendingVerification?.code ||
-    (route.query.code as string) ||
-    ''
-  )
+  return authStore.pendingVerification?.code || (route.query.code as string) || ''
 })
 
 const formState = reactive({
@@ -87,7 +83,9 @@ async function handleResetPassword() {
     <UCard class="w-full max-w-md shadow-xl border border-gray-200 dark:border-gray-800">
       <template #header>
         <div class="text-center space-y-2">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-600 dark:text-primary-400 mb-1">
+          <div
+            class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-600 dark:text-primary-400 mb-1"
+          >
             <UIcon name="i-lucide-key-round" class="w-6 h-6" />
           </div>
           <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
@@ -121,7 +119,12 @@ async function handleResetPassword() {
 
       <!-- Simplified Form: Only New Password & Confirm New Password -->
       <UForm :state="formState" class="space-y-4" @submit="handleResetPassword">
-        <UFormField label="New Password" required help="Must be at least 8 characters" :error="authStore.fieldErrors.newPassword">
+        <UFormField
+          label="New Password"
+          required
+          help="Must be at least 8 characters"
+          :error="authStore.fieldErrors.newPassword"
+        >
           <UInput
             v-model="formState.newPassword"
             :type="showNewPassword ? 'text' : 'password'"
@@ -145,7 +148,11 @@ async function handleResetPassword() {
           </UInput>
         </UFormField>
 
-        <UFormField label="Confirm New Password" required :error="authStore.fieldErrors.confirmPassword">
+        <UFormField
+          label="Confirm New Password"
+          required
+          :error="authStore.fieldErrors.confirmPassword"
+        >
           <UInput
             v-model="formState.confirmPassword"
             :type="showConfirmPassword ? 'text' : 'password'"

@@ -34,7 +34,13 @@ async function handleLogout() {
               Profile & Security
             </UButton>
           </RouterLink>
-          <UButton color="error" variant="soft" size="sm" icon="i-lucide-log-out" @click="handleLogout">
+          <UButton
+            color="error"
+            variant="soft"
+            size="sm"
+            icon="i-lucide-log-out"
+            @click="handleLogout"
+          >
             Sign Out
           </UButton>
         </div>
@@ -43,14 +49,16 @@ async function handleLogout() {
 
     <!-- Content Body -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      
       <!-- Welcome Banner -->
-      <div class="p-6 rounded-2xl bg-linear-to-r from-primary-600 to-indigo-600 text-white shadow-xl">
+      <div
+        class="p-6 rounded-2xl bg-linear-to-r from-primary-600 to-indigo-600 text-white shadow-xl"
+      >
         <h1 class="text-3xl font-extrabold tracking-tight">
           Welcome back, {{ authStore.user?.name || 'Developer' }}!
         </h1>
         <p class="mt-2 text-primary-100 max-w-2xl text-sm sm:text-base">
-          You have successfully logged in via HTTP-Only session cookie. You can manage your profile or setup multi-factor authentication in profile settings.
+          You have successfully logged in via HTTP-Only session cookie. You can manage your profile
+          or setup multi-factor authentication in profile settings.
         </p>
       </div>
 
@@ -63,7 +71,9 @@ async function handleLogout() {
             </div>
             <div>
               <p class="text-xs font-semibold uppercase text-gray-400">Account Identity</p>
-              <p class="text-base font-bold text-gray-900 dark:text-white">@{{ authStore.user?.username }}</p>
+              <p class="text-base font-bold text-gray-900 dark:text-white">
+                @{{ authStore.user?.username }}
+              </p>
             </div>
           </div>
         </UCard>
@@ -94,7 +104,6 @@ async function handleLogout() {
           </div>
         </UCard>
       </div>
-
     </main>
   </div>
 </template>

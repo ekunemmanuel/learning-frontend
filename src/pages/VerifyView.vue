@@ -9,11 +9,7 @@ const authStore = useAuthStore()
 
 // Dynamic verification type from store context or route fallback
 const verifyType = computed<'email_verification' | 'phone_verification' | 'password_reset'>(() => {
-  return (
-    authStore.pendingVerification?.type ||
-    (route.query.type as any) ||
-    'email_verification'
-  )
+  return authStore.pendingVerification?.type || (route.query.type as any) || 'email_verification'
 })
 
 // Email destination display
@@ -152,16 +148,22 @@ async function handleResend() {
     <UCard class="w-full max-w-md shadow-xl border border-gray-200 dark:border-gray-800">
       <template #header>
         <div class="text-center space-y-2">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-600 dark:text-primary-400 mb-1">
+          <div
+            class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-600 dark:text-primary-400 mb-1"
+          >
             <UIcon name="i-lucide-mail-check" class="w-6 h-6" />
           </div>
           <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-            {{ verifyType === 'password_reset' ? 'Reset Password Verification' : 'Check Your Email' }}
+            {{
+              verifyType === 'password_reset' ? 'Reset Password Verification' : 'Check Your Email'
+            }}
           </h1>
           <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
             We sent a 4-digit verification code to
           </p>
-          <div class="inline-block px-3 py-1 bg-primary-50 dark:bg-primary-950/50 rounded-full border border-primary-200 dark:border-primary-800">
+          <div
+            class="inline-block px-3 py-1 bg-primary-50 dark:bg-primary-950/50 rounded-full border border-primary-200 dark:border-primary-800"
+          >
             <span class="text-sm font-semibold text-primary-700 dark:text-primary-300">
               {{ emailAddress }}
             </span>
@@ -190,7 +192,12 @@ async function handleResend() {
       />
 
       <div class="space-y-6 text-center py-2">
-        <UFormField label="Enter 4-Digit Security Code" required :error="authStore.fieldErrors.code" class="flex flex-col items-center">
+        <UFormField
+          label="Enter 4-Digit Security Code"
+          required
+          :error="authStore.fieldErrors.code"
+          class="flex flex-col items-center"
+        >
           <div class="flex justify-center w-full mt-2">
             <UPinInput
               v-model="pinValue"
@@ -237,8 +244,13 @@ async function handleResend() {
           </div>
 
           <!-- Navigation Back Links -->
-          <div class="flex items-center justify-between text-xs border-t border-gray-100 dark:border-gray-800 pt-3">
-            <RouterLink to="/login" class="text-primary hover:text-primary-500 font-medium flex items-center gap-1">
+          <div
+            class="flex items-center justify-between text-xs border-t border-gray-100 dark:border-gray-800 pt-3"
+          >
+            <RouterLink
+              to="/login"
+              class="text-primary hover:text-primary-500 font-medium flex items-center gap-1"
+            >
               <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
               Back to Sign In
             </RouterLink>
