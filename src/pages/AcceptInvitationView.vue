@@ -24,9 +24,21 @@ const isEmailMismatch = computed(() => {
   return authStore.user.email.toLowerCase() !== invitedEmail.value.toLowerCase()
 })
 
+function clearInviteSession() {
+  sessionStorage.removeItem('pending_invite_token')
+  sessionStorage.removeItem('pending_invite_email')
+  sessionStorage.removeItem('pending_invite_org')
+}
+
+function goBackToDashboard() {
+  clearInviteSession()
+  router.push('/dashboard')
+}
+
 onMounted(async () => {
   if (!token.value) {
     localError.value = 'Invalid or missing invitation token.'
+    clearInviteSession()
     return
   }
 
@@ -63,15 +75,14 @@ async function claimInvitation() {
 
   try {
     await organizationStore.acceptInvitation(token.value)
-    sessionStorage.removeItem('pending_invite_token')
-    sessionStorage.removeItem('pending_invite_email')
-    sessionStorage.removeItem('pending_invite_org')
+    clearInviteSession()
     successMessage.value = 'Successfully joined organization!'
     setTimeout(() => {
       router.push('/dashboard')
     }, 1200)
   } catch (err: any) {
     localError.value = err.message || 'Failed to claim invitation token.'
+    clearInviteSession()
   } finally {
     isSubmitting.value = false
   }
@@ -115,14 +126,25 @@ async function handleSwitchAccount() {
       />
 
       <!-- Error Alert -->
-      <UAlert
-        v-if="localError || organizationStore.error"
-        color="error"
-        variant="soft"
-        icon="i-lucide-alert-circle"
-        :title="localError || organizationStore.error || ''"
-        class="mb-4"
-      />
+      <div v-if="localError || organizationStore.error" class="space-y-4 mb-4">
+        <UAlert
+          color="error"
+          variant="soft"
+          icon="i-lucide-alert-circle"
+          :title="localError || organizationStore.error || ''"
+        />
+        <UButton
+          v-if="authStore.isAuthenticated"
+          color="neutral"
+          variant="outline"
+          block
+          class="w-full justify-center font-bold"
+          icon="i-lucide-arrow-left"
+          @click="goBackToDashboard"
+        >
+          Back to Dashboard
+        </UButton>
+      </div>
 
       <!-- Scenario B: Email Mismatch Warning -->
       <div v-if="isEmailMismatch" class="space-y-4 text-center py-2">
@@ -134,33 +156,59 @@ async function handleSwitchAccount() {
           :description="`You are currently signed in as '${authStore.user?.email}'. This invitation was sent to '${invitedEmail}'. Please switch accounts to accept.`"
         />
 
-        <UButton
-          color="primary"
-          block
-          class="w-full justify-center font-bold"
-          @click="handleSwitchAccount"
-        >
-          Sign Out & Switch Account to {{ invitedEmail }}
-        </UButton>
+        <div class="space-y-2">
+          <UButton
+            color="primary"
+            block
+            class="w-full justify-center font-bold"
+            @click="handleSwitchAccount"
+          >
+            Sign Out & Switch Account to {{ invitedEmail }}
+          </UButton>
+          <UButton
+            color="neutral"
+            variant="ghost"
+            block
+            class="w-full justify-center text-xs"
+            icon="i-lucide-arrow-left"
+            @click="goBackToDashboard"
+          >
+            Back to Dashboard
+          </UButton>
+        </div>
       </div>
 
       <!-- Scenario A: Matching Logged In User Claim Button -->
-      <div v-else-if="authStore.isAuthenticated && !successMessage" class="space-y-4 text-center py-2">
+      <div v-else-if="authStore.isAuthenticated && !successMessage && !localError && !organizationStore.error" class="space-y-4 text-center py-2">
         <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 text-left text-xs space-y-1">
           <p><span class="font-semibold text-gray-500">Invited Email:</span> <span class="font-bold text-gray-900 dark:text-white">{{ invitedEmail || authStore.user?.email }}</span></p>
           <p><span class="font-semibold text-gray-500">Target Workspace:</span> <span class="font-bold text-gray-900 dark:text-white">{{ orgSlug || 'Organization' }}</span></p>
         </div>
 
-        <UButton
-          color="primary"
-          size="lg"
-          block
-          class="w-full justify-center text-base font-semibold py-2.5"
-          :loading="isSubmitting"
-          @click="claimInvitation"
-        >
-          Accept & Join Workspace
-        </UButton>
+        <div class="space-y-2">
+          <UButton
+            color="primary"
+            size="lg"
+            block
+            class="w-full justify-center text-base font-semibold py-2.5"
+            :loading="isSubmitting"
+            @click="claimInvitation"
+          >
+            Accept & Join Workspace
+          </UButton>
+
+          <UButton
+            color="neutral"
+            variant="outline"
+            size="md"
+            block
+            class="w-full justify-center font-semibold"
+            icon="i-lucide-arrow-left"
+            @click="goBackToDashboard"
+          >
+            Back to Dashboard
+          </UButton>
+        </div>
       </div>
     </UCard>
   </div>

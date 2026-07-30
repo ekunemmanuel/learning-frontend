@@ -114,12 +114,12 @@ function copyInviteLink(id: string, url?: string) {
               <th class="py-3 px-4">Role</th>
               <th class="py-3 px-4">Status</th>
               <th class="py-3 px-4">Joined Date</th>
-              <th class="py-3 px-4 text-right">Actions</th>
+              <th v-if="organizationStore.isCurrentOrgAdmin" class="py-3 px-4 text-right">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
             <tr v-if="organizationStore.members.length === 0">
-              <td colspan="5" class="text-center py-6 text-gray-400">
+              <td :colspan="organizationStore.isCurrentOrgAdmin ? 5 : 4" class="text-center py-6 text-gray-400">
                 No members found in this organization.
               </td>
             </tr>
@@ -130,9 +130,9 @@ function copyInviteLink(id: string, url?: string) {
               </td>
               <td class="py-3 px-4">
                 <USelect
-                  v-if="organizationStore.isCurrentOrgAdmin"
+                  v-if="organizationStore.isCurrentOrgAdmin && m.role !== 'Owner'"
                   :model-value="m.role"
-                  :items="['Owner', 'Admin', 'Member']"
+                  :items="['Admin', 'Member']"
                   size="xs"
                   class="w-28"
                   @update:model-value="(val) => handleRoleChange(m, val as any)"
@@ -147,8 +147,9 @@ function copyInviteLink(id: string, url?: string) {
               <td class="py-3 px-4 text-gray-500">
                 {{ m.joinedAt ? new Date(m.joinedAt).toLocaleDateString() : 'N/A' }}
               </td>
-              <td class="py-3 px-4 text-right">
+              <td v-if="organizationStore.isCurrentOrgAdmin" class="py-3 px-4 text-right">
                 <UButton
+                  v-if="m.role !== 'Owner'"
                   color="error"
                   variant="ghost"
                   size="xs"
