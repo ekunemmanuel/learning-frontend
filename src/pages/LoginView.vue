@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
-
 import { useOrganizationStore } from '../stores/organizationStore'
 
 const router = useRouter()
@@ -10,10 +9,25 @@ const route = useRoute()
 const authStore = useAuthStore()
 const organizationStore = useOrganizationStore()
 
+const pendingInviteOrg = ref(sessionStorage.getItem('pending_invite_org') || '')
+const pendingInviteEmail = ref(sessionStorage.getItem('pending_invite_email') || (route.query.email as string) || '')
+
 onMounted(() => {
   // Clear any stale verification data when returning to the login page
   authStore.clearPendingVerification()
+  if (pendingInviteEmail.value) {
+    formState.identifier = pendingInviteEmail.value
+  }
 })
+
+function cancelInvitationNotice() {
+  sessionStorage.removeItem('pending_invite_token')
+  sessionStorage.removeItem('pending_invite_email')
+  sessionStorage.removeItem('pending_invite_org')
+  pendingInviteEmail.value = ''
+  pendingInviteOrg.value = ''
+  formState.identifier = ''
+}
 
 const formState = reactive({
   identifier: '',
@@ -79,7 +93,7 @@ async function handleMfaSubmit() {
   }
 }
 
-function cancelMfa() {
+function handleCancelMfa() {
   authStore.cancelMfaStep()
   mfaPin.value = []
   backupCodePin.value = []
@@ -93,10 +107,11 @@ function cancelMfa() {
     <UCard class="w-full max-w-md shadow-xl border border-gray-200 dark:border-gray-800">
       <template #header>
         <div class="text-center space-y-2">
-          <div
-            class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-600 dark:text-primary-400 mb-1"
-          >
-            <UIcon name="i-lucide-lock" class="w-6 h-6" />
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-600 dark:text-primary-400 mb-1">
+            <UIcon
+              :name="authStore.mfaRequired ? 'i-lucide-shield-check' : 'i-lucide-log-in'"
+              class="w-6 h-6"
+            />
           </div>
           <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
             {{ authStore.mfaRequired ? 'Two-Factor Verification' : 'Sign in to your account' }}
@@ -110,6 +125,30 @@ function cancelMfa() {
           </p>
         </div>
       </template>
+
+      <!-- Invitation Banner with Cancel Button -->
+      <div
+        v-if="pendingInviteEmail || pendingInviteOrg"
+        class="mb-4 p-3.5 bg-info-50 dark:bg-info-950/40 border border-info-200 dark:border-info-900 rounded-xl text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+      >
+        <div class="flex items-center gap-2.5">
+          <UIcon name="i-lucide-mail-open" class="w-5 h-5 text-info-600 dark:text-info-400 shrink-0" />
+          <div>
+            <p class="font-bold text-gray-900 dark:text-white">Workspace Invitation Received</p>
+            <p class="text-gray-500">Sign in to join {{ pendingInviteOrg || 'the organization' }}.</p>
+          </div>
+        </div>
+        <UButton
+          color="neutral"
+          variant="outline"
+          size="xs"
+          icon="i-lucide-x"
+          class="shrink-0 font-bold self-end sm:self-auto"
+          @click="cancelInvitationNotice"
+        >
+          Cancel Invite
+        </UButton>
+      </div>
 
       <!-- Alert Error -->
       <UAlert
@@ -138,100 +177,75 @@ function cancelMfa() {
               :length="6"
               type="text"
               otp
-              size="lg"
+              autofocus
               class="gap-2"
-              @complete="handleMfaSubmit"
             />
           </div>
 
-          <!-- Emergency Backup Code OTP Input (8 character boxes, hyphens ignored) -->
+          <!-- 8-character Backup Code Pin Input -->
           <div v-else class="flex justify-center w-full mt-2">
             <UPinInput
               v-model="backupCodePin"
               :length="8"
               type="text"
-              otp
-              size="lg"
-              class="gap-1.5"
-              @complete="handleMfaSubmit"
+              autofocus
+              class="gap-1.5 font-mono"
             />
           </div>
         </UFormField>
 
-        <!-- Toggle between 6-digit TOTP and Backup code -->
         <div class="text-center">
           <UButton
             color="neutral"
             variant="link"
             size="xs"
-            class="text-xs text-primary hover:text-primary-500"
+            class="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
             @click="isUsingBackupCode = !isUsingBackupCode"
           >
             {{
               isUsingBackupCode
                 ? 'Use 6-digit authenticator code instead'
-                : 'Use emergency backup code instead'
+                : 'Lost access? Use emergency backup code'
             }}
           </UButton>
         </div>
 
-        <div class="flex gap-3">
-          <div class="flex-1">
-            <UButton
-              color="neutral"
-              variant="outline"
-              :disabled="isSubmitting"
-              @click="cancelMfa"
-              class="block w-full"
-            >
-              Back to Login
-            </UButton>
-          </div>
-          <div class="flex-1">
-            <UButton
-              color="primary"
-              :loading="isSubmitting"
-              @click="handleMfaSubmit"
-              class="block w-full"
-            >
-              Verify & Sign In
-            </UButton>
-          </div>
+        <div class="flex gap-2 pt-2">
+          <UButton color="neutral" variant="outline" class="w-1/2 justify-center" @click="handleCancelMfa">
+            Back to Sign In
+          </UButton>
+          <UButton
+            color="primary"
+            class="w-1/2 justify-center font-semibold"
+            :loading="isSubmitting"
+            @click="handleMfaSubmit"
+          >
+            Verify & Sign In
+          </UButton>
         </div>
       </div>
 
-      <!-- Step 1 Login Form -->
+      <!-- Standard Login Form -->
       <UForm v-else :state="formState" class="space-y-4" @submit="handleLogin">
         <UFormField
-          label="Email, Username or Phone"
+          label="Username, Email, or Phone"
           required
           :error="authStore.fieldErrors.identifier"
         >
           <UInput
             v-model="formState.identifier"
-            placeholder="you@example.com or pablodev"
+            placeholder="emmanuel or email@example.com"
             icon="i-lucide-user"
-            size="lg"
             class="w-full"
-            autofocus
           />
         </UFormField>
 
         <UFormField label="Password" required :error="authStore.fieldErrors.password">
-          <template #hint>
-            <RouterLink
-              to="/forgot-password"
-              class="text-xs text-primary hover:text-primary-500 font-medium"
-            >
-              Forgot password?
-            </RouterLink>
-          </template>
           <UInput
             v-model="formState.password"
             :type="showPassword ? 'text' : 'password'"
             placeholder="••••••••"
             icon="i-lucide-key-round"
-            size="lg"
             class="w-full"
           >
             <template #trailing>
@@ -247,6 +261,15 @@ function cancelMfa() {
             </template>
           </UInput>
         </UFormField>
+
+        <div class="flex items-center justify-end text-xs">
+          <RouterLink
+            to="/forgot-password"
+            class="text-primary hover:text-primary-500 font-semibold"
+          >
+            Forgot password?
+          </RouterLink>
+        </div>
 
         <UButton
           type="submit"
@@ -264,7 +287,7 @@ function cancelMfa() {
         <p class="text-center text-sm text-gray-500 dark:text-gray-400">
           Don't have an account?
           <RouterLink to="/signup" class="text-primary hover:text-primary-500 font-semibold ml-1">
-            Create an account
+            Create account
           </RouterLink>
         </p>
       </template>

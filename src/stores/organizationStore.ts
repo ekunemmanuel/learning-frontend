@@ -54,6 +54,14 @@ export const useOrganizationStore = defineStore('organization', () => {
     }
   }
 
+  function resetStore() {
+    organizations.value = [PERSONAL_WORKSPACE]
+    currentOrganization.value = PERSONAL_WORKSPACE
+    members.value = []
+    invitations.value = []
+    error.value = null
+  }
+
   async function fetchUserOrganizations(): Promise<OrganizationSchema[]> {
     isLoading.value = true
     clearError()
@@ -62,13 +70,10 @@ export const useOrganizationStore = defineStore('organization', () => {
       const fetchedOrgs = res.data || []
       organizations.value = [PERSONAL_WORKSPACE, ...fetchedOrgs]
 
-      // Keep current org if still valid, or fallback to first org
+      // By default, always maintain or revert to Personal Workspace on user load/login
       const found = fetchedOrgs.find((o) => o.id === currentOrganization.value.id)
-      if (found) {
-        currentOrganization.value = found
-      } else if (fetchedOrgs.length > 0 && isPersonalWorkspace.value) {
-        // Default to first organization if user has organizations
-        currentOrganization.value = fetchedOrgs[0]!
+      if (!found) {
+        currentOrganization.value = PERSONAL_WORKSPACE
       }
       return organizations.value
     } catch (err: any) {
@@ -282,6 +287,7 @@ export const useOrganizationStore = defineStore('organization', () => {
     isCurrentOrgAdmin,
     isPersonalWorkspace,
     clearError,
+    resetStore,
     setCurrentOrganization,
     fetchUserOrganizations,
     createOrganization,

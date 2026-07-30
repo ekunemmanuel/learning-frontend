@@ -52,6 +52,15 @@ onMounted(() => {
   }
 })
 
+function cancelInvitationNotice() {
+  sessionStorage.removeItem('pending_invite_token')
+  sessionStorage.removeItem('pending_invite_email')
+  sessionStorage.removeItem('pending_invite_org')
+  pendingInviteEmail.value = ''
+  pendingInviteOrg.value = ''
+  formState.email = ''
+}
+
 const showPassword = ref(false)
 const isSubmitting = ref(false)
 const localError = ref<string | null>(null)
@@ -102,16 +111,29 @@ async function handleSignup() {
         </div>
       </template>
 
-      <!-- Invitation Banner -->
-      <UAlert
+      <!-- Invitation Banner with Cancel Button -->
+      <div
         v-if="pendingInviteEmail || pendingInviteOrg"
-        color="info"
-        variant="soft"
-        icon="i-lucide-mail-open"
-        title="Workspace Invitation Received"
-        :description="`Create your account below to accept your invitation to join ${pendingInviteOrg || 'the organization'}.`"
-        class="mb-4"
-      />
+        class="mb-4 p-3.5 bg-info-50 dark:bg-info-950/40 border border-info-200 dark:border-info-900 rounded-xl text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+      >
+        <div class="flex items-center gap-2.5">
+          <UIcon name="i-lucide-mail-open" class="w-5 h-5 text-info-600 dark:text-info-400 shrink-0" />
+          <div>
+            <p class="font-bold text-gray-900 dark:text-white">Workspace Invitation Received</p>
+            <p class="text-gray-500">Create your account to join {{ pendingInviteOrg || 'the organization' }}.</p>
+          </div>
+        </div>
+        <UButton
+          color="neutral"
+          variant="outline"
+          size="xs"
+          icon="i-lucide-x"
+          class="shrink-0 font-bold self-end sm:self-auto"
+          @click="cancelInvitationNotice"
+        >
+          Cancel Invite & Change Email
+        </UButton>
+      </div>
 
       <!-- Alert Error -->
       <UAlert

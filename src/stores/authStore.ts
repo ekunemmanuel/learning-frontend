@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authService } from '../services/authService'
+import { useOrganizationStore } from './organizationStore'
 import type {
   MfaSetupResponseData,
   ResendOtpPayload,
@@ -122,6 +123,8 @@ export const useAuthStore = defineStore('auth', () => {
 
       mfaRequired.value = false
       pendingCredentials.value = null
+      const organizationStore = useOrganizationStore()
+      organizationStore.resetStore()
       await fetchUser()
       return { mfaRequired: false }
     } catch (err: any) {
@@ -268,6 +271,8 @@ export const useAuthStore = defineStore('auth', () => {
       pendingVerification.value = null
       fieldErrors.value = {}
       isLoading.value = false
+      const organizationStore = useOrganizationStore()
+      organizationStore.resetStore()
     }
   }
 
