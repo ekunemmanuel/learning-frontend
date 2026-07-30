@@ -8,6 +8,7 @@ import SignupView from '../pages/SignupView.vue'
 import VerifyView from '../pages/VerifyView.vue'
 import ForgotPasswordView from '../pages/ForgotPasswordView.vue'
 import ResetPasswordView from '../pages/ResetPasswordView.vue'
+import AcceptInvitationView from '../pages/AcceptInvitationView.vue'
 
 import DashboardView from '../pages/DashboardView.vue'
 import CustomersView from '../pages/CustomersView.vue'
@@ -55,6 +56,11 @@ const router = createRouter({
       path: '/reset-password',
       name: 'reset-password',
       component: ResetPasswordView,
+    },
+    {
+      path: '/invitations/accept',
+      name: 'accept-invitation',
+      component: AcceptInvitationView,
     },
     // Protected Dashboard Layout Routes
     {

@@ -66,7 +66,7 @@ const chartData = [
           class="flex-1 flex flex-col items-center gap-2 group h-full justify-end"
         >
           <div
-            class="w-full max-w-[28px] bg-primary-500/80 hover:bg-primary-600 rounded-t-md transition-all duration-300 relative"
+            class="w-full max-w-7 bg-primary-500/80 hover:bg-primary-600 rounded-t-md transition-all duration-300 relative"
             :style="{ height: item.height }"
           >
             <!-- Tooltip -->

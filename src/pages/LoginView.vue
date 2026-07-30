@@ -3,9 +3,12 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 
+import { useOrganizationStore } from '../stores/organizationStore'
+
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const organizationStore = useOrganizationStore()
 
 onMounted(() => {
   // Clear any stale verification data when returning to the login page
@@ -37,6 +40,7 @@ async function handleLogin() {
   try {
     const result = await authStore.login(formState.identifier, formState.password)
     if (!result.mfaRequired) {
+      await organizationStore.checkAndClaimPendingInvitation()
       const redirect = (route.query.redirect as string) || '/dashboard'
       router.push(redirect)
     }
@@ -65,6 +69,7 @@ async function handleMfaSubmit() {
 
   try {
     await authStore.loginMfa(code)
+    await organizationStore.checkAndClaimPendingInvitation()
     const redirect = (route.query.redirect as string) || '/dashboard'
     router.push(redirect)
   } catch (err: any) {

@@ -1,11 +1,17 @@
 <script setup lang="ts">
-import { reactive, ref, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { reactive, ref, computed, watch, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
+import { useOrganizationStore } from '../stores/organizationStore'
 import { COUNTRIES } from '../data/countries'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
+const organizationStore = useOrganizationStore()
+
+const pendingInviteOrg = ref(sessionStorage.getItem('pending_invite_org') || '')
+const pendingInviteEmail = ref(sessionStorage.getItem('pending_invite_email') || (route.query.email as string) || '')
 
 // String refs for USelectMenu value-key bindings
 const selectedCountryCode = ref<string>('NG')
@@ -38,6 +44,12 @@ const formState = reactive({
   username: '',
   email: '',
   password: '',
+})
+
+onMounted(() => {
+  if (pendingInviteEmail.value) {
+    formState.email = pendingInviteEmail.value
+  }
 })
 
 const showPassword = ref(false)
@@ -78,9 +90,7 @@ async function handleSignup() {
     <UCard class="w-full max-w-lg shadow-xl border border-gray-200 dark:border-gray-800">
       <template #header>
         <div class="text-center space-y-2">
-          <div
-            class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-600 dark:text-primary-400 mb-1"
-          >
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-600 dark:text-primary-400 mb-1">
             <UIcon name="i-lucide-user-plus" class="w-6 h-6" />
           </div>
           <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
@@ -91,6 +101,17 @@ async function handleSignup() {
           </p>
         </div>
       </template>
+
+      <!-- Invitation Banner -->
+      <UAlert
+        v-if="pendingInviteEmail || pendingInviteOrg"
+        color="info"
+        variant="soft"
+        icon="i-lucide-mail-open"
+        title="Workspace Invitation Received"
+        :description="`Create your account below to accept your invitation to join ${pendingInviteOrg || 'the organization'}.`"
+        class="mb-4"
+      />
 
       <!-- Alert Error -->
       <UAlert
@@ -130,6 +151,7 @@ async function handleSignup() {
             placeholder="pablo@example.com"
             icon="i-lucide-mail"
             class="w-full"
+            :readonly="!!pendingInviteEmail"
           />
         </UFormField>
 

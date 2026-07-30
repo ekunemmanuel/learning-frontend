@@ -1,76 +1,41 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useAuthStore } from '../stores/authStore'
+import { ref, computed, onMounted } from 'vue'
+import { useOrganizationStore, PERSONAL_WORKSPACE } from '../stores/organizationStore'
+import CreateOrganizationModal from './organizations/CreateOrganizationModal.vue'
+import type { OrganizationSchema } from '../types/organization'
 
-const authStore = useAuthStore()
-
-interface Team {
-  id: string
-  name: string
-  avatar: string
-  role: string
-}
-
-const teams = ref<Team[]>([
-  {
-    id: '1',
-    name: 'Acme Corp',
-    avatar: 'i-lucide-building-2',
-    role: 'Owner',
-  },
-  {
-    id: '2',
-    name: 'Personal Workspace',
-    avatar: 'i-lucide-user',
-    role: 'Admin',
-  },
-  {
-    id: '3',
-    name: 'Stark Industries',
-    avatar: 'i-lucide-zap',
-    role: 'Member',
-  },
-])
-
-const activeTeam = ref<Team>(teams.value[0]!)
+const organizationStore = useOrganizationStore()
 const isCreateModalOpen = ref(false)
-const newTeamName = ref('')
 
-const dropdownItems = computed(() => [
-  teams.value.map((team) => ({
-    label: team.name,
-    icon: team.avatar,
-    badge: team.role,
+onMounted(() => {
+  organizationStore.fetchUserOrganizations()
+})
+
+const dropdownItems = computed(() => {
+  const orgItems = organizationStore.organizations.map((org) => ({
+    label: org.name,
+    icon: org.id === PERSONAL_WORKSPACE.id ? 'i-lucide-user' : 'i-lucide-building-2',
+    badge: org.role,
     type: 'checkbox' as const,
-    checked: team.id === activeTeam.value.id,
+    checked: org.id === organizationStore.currentOrganization.id,
     onSelect: () => {
-      activeTeam.value = team
+      organizationStore.setCurrentOrganization(org)
     },
-  })),
-  [
-    {
-      label: 'Create Workspace',
-      icon: 'i-lucide-plus',
-      onSelect: () => {
-        isCreateModalOpen.value = true
-      },
-    },
-  ],
-])
+  }))
 
-function handleCreateTeam() {
-  if (!newTeamName.value.trim()) return
-  const newTeam: Team = {
-    id: String(Date.now()),
-    name: newTeamName.value.trim(),
-    avatar: 'i-lucide-briefcase',
-    role: 'Owner',
-  }
-  teams.value.push(newTeam)
-  activeTeam.value = newTeam
-  newTeamName.value = ''
-  isCreateModalOpen.value = false
-}
+  return [
+    orgItems,
+    [
+      {
+        label: 'Create Workspace',
+        icon: 'i-lucide-plus',
+        onSelect: () => {
+          isCreateModalOpen.value = true
+        },
+      },
+    ],
+  ]
+})
 </script>
 
 <template>
@@ -83,14 +48,17 @@ function handleCreateTeam() {
       >
         <div class="flex items-center gap-2.5 min-w-0">
           <div class="w-8 h-8 rounded-lg bg-primary-100 dark:bg-primary-950 text-primary-600 dark:text-primary-400 flex items-center justify-center shrink-0">
-            <UIcon :name="activeTeam.avatar" class="w-4 h-4" />
+            <UIcon
+              :name="organizationStore.currentOrganization.id === PERSONAL_WORKSPACE.id ? 'i-lucide-user' : 'i-lucide-building-2'"
+              class="w-4 h-4"
+            />
           </div>
           <div class="text-left truncate">
             <p class="text-xs font-bold text-gray-900 dark:text-white truncate leading-tight">
-              {{ activeTeam.name }}
+              {{ organizationStore.currentOrganization.name }}
             </p>
-            <p class="text-[10px] text-gray-500 dark:text-gray-400 font-medium">
-              {{ activeTeam.role }}
+            <p class="text-[10px] text-gray-500 dark:text-gray-400 font-medium capitalize">
+              {{ organizationStore.currentOrganization.role }} • {{ organizationStore.currentOrganization.billingPlan }}
             </p>
           </div>
         </div>
@@ -99,30 +67,6 @@ function handleCreateTeam() {
     </UDropdownMenu>
 
     <!-- Create Workspace Modal -->
-    <UModal v-model:open="isCreateModalOpen" title="Create New Workspace" description="Add a new workspace to manage your team and projects">
-      <template #body>
-        <div class="space-y-4 py-2">
-          <UFormField label="Workspace Name" required help="e.g. Acme Marketing, Dev Studio">
-            <UInput
-              v-model="newTeamName"
-              placeholder="My New Workspace"
-              icon="i-lucide-building"
-              class="w-full"
-              autofocus
-            />
-          </UFormField>
-        </div>
-      </template>
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <UButton color="neutral" variant="outline" @click="isCreateModalOpen = false">
-            Cancel
-          </UButton>
-          <UButton color="primary" :disabled="!newTeamName.trim()" @click="handleCreateTeam">
-            Create Workspace
-          </UButton>
-        </div>
-      </template>
-    </UModal>
+    <CreateOrganizationModal v-model:open="isCreateModalOpen" />
   </div>
 </template>

@@ -10,7 +10,7 @@ const authStore = useAuthStore()
 <template>
   <div class="space-y-6">
     <!-- Header Banner -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 bg-gradient-to-r from-primary-600 to-primary-800 rounded-2xl text-white shadow-lg">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 bg-linear-to-r from-primary-600 to-primary-800 rounded-2xl text-white shadow-lg">
       <div class="space-y-1">
         <h2 class="text-2xl font-black tracking-tight">
           Welcome back, {{ authStore.user?.name || 'Developer' }}!
