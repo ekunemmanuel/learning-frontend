@@ -3,6 +3,10 @@ import { ref, computed, onMounted } from 'vue'
 import { useOrganizationStore, PERSONAL_WORKSPACE } from '../stores/organizationStore'
 import CreateOrganizationModal from './organizations/CreateOrganizationModal.vue'
 
+defineProps<{
+  collapsed?: boolean
+}>()
+
 const organizationStore = useOrganizationStore()
 const isCreateModalOpen = ref(false)
 
@@ -39,12 +43,8 @@ const dropdownItems = computed(() => {
 
 <template>
   <div>
-    <UDropdownMenu :items="dropdownItems" :content="{ align: 'start' }">
-      <UButton
-        color="neutral"
-        variant="ghost"
-        class="w-full justify-between py-2 px-2.5 rounded-lg border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors"
-      >
+    <UDropdownMenu :items="dropdownItems" :content="{ align: 'start' }" :ui="{ content: 'w-64' }">
+      <UButton color="neutral" variant="soft" class="w-full justify-between">
         <div class="flex items-center gap-2.5 min-w-0">
           <div
             class="w-8 h-8 rounded-lg bg-primary-100 dark:bg-primary-950 text-primary-600 dark:text-primary-400 flex items-center justify-center shrink-0"
@@ -58,17 +58,13 @@ const dropdownItems = computed(() => {
               class="w-4 h-4"
             />
           </div>
-          <div class="text-left truncate">
+          <div v-if="!collapsed" class="text-left truncate">
             <p class="text-xs font-bold text-gray-900 dark:text-white truncate leading-tight">
               {{ organizationStore.currentOrganization.name }}
             </p>
-            <p class="text-[10px] text-gray-500 dark:text-gray-400 font-medium capitalize">
-              {{ organizationStore.currentOrganization.role }} •
-              {{ organizationStore.currentOrganization.billingPlan }}
-            </p>
           </div>
         </div>
-        <UIcon name="i-lucide-chevrons-up-down" class="w-4 h-4 text-gray-400 shrink-0" />
+        <UIcon v-if="!collapsed" name="i-lucide-chevrons-up-down" class="w-4 h-4 shrink-0" />
       </UButton>
     </UDropdownMenu>
 

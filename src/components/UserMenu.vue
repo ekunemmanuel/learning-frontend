@@ -3,6 +3,10 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 
+defineProps<{
+  collapsed?: boolean
+}>()
+
 const router = useRouter()
 const authStore = useAuthStore()
 
@@ -68,7 +72,7 @@ const dropdownItems = computed(() => [
           size="sm"
           class="shrink-0 font-bold bg-primary-100 text-primary-700 dark:bg-primary-950 dark:text-primary-300"
         />
-        <div class="text-left truncate">
+        <div v-if="!collapsed" class="text-left truncate">
           <p class="text-xs font-semibold text-gray-900 dark:text-white truncate">
             {{ userName }}
           </p>
@@ -77,7 +81,7 @@ const dropdownItems = computed(() => [
           </p>
         </div>
       </div>
-      <UIcon name="i-lucide-chevrons-up-down" class="w-4 h-4 text-gray-400 shrink-0" />
+      <UIcon v-if="!collapsed" name="i-lucide-chevrons-up-down" class="w-4 h-4 text-gray-400 shrink-0" />
     </UButton>
 
     <template #account>
