@@ -46,8 +46,8 @@ async function handleCreate() {
     formState.billingPlan = 'pro'
     emit('created')
     emit('update:open', false)
-  } catch (err: any) {
-    localError.value = err.message || 'Failed to create workspace.'
+  } catch (err: unknown) {
+    localError.value = (err as Error).message || 'Failed to create workspace.'
   } finally {
     isSubmitting.value = false
   }

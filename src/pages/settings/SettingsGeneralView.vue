@@ -36,8 +36,8 @@ async function handleSave() {
       billingPlan: formState.billingPlan,
     })
     localSuccess.value = 'Organization workspace updated successfully!'
-  } catch (err: any) {
-    localError.value = err.message || 'Failed to update organization.'
+  } catch (err: unknown) {
+    localError.value = (err as Error).message || 'Failed to update organization.'
   } finally {
     isSubmitting.value = false
   }
@@ -50,8 +50,8 @@ async function handleDeleteWorkspace() {
   try {
     await organizationStore.deleteOrganization()
     isDeleteConfirmOpen.value = false
-  } catch (err: any) {
-    localError.value = err.message || 'Failed to delete organization.'
+  } catch (err: unknown) {
+    localError.value = (err as Error).message || 'Failed to delete organization.'
     isDeleteConfirmOpen.value = false
   } finally {
     isDeleting.value = false

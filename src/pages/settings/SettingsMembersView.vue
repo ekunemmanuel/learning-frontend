@@ -35,8 +35,8 @@ async function handleRoleChange(member: MemberSchema, newRole: 'Owner' | 'Admin'
   localError.value = null
   try {
     await organizationStore.updateMemberRole(member.id, newRole)
-  } catch (err: any) {
-    localError.value = err.message || 'Failed to update member role.'
+  } catch (err: unknown) {
+    localError.value = (err as Error).message || 'Failed to update member role.'
   }
 }
 
@@ -44,8 +44,8 @@ async function handleRemoveMember(member: MemberSchema) {
   localError.value = null
   try {
     await organizationStore.removeMember(member.id)
-  } catch (err: any) {
-    localError.value = err.message || 'Failed to remove team member.'
+  } catch (err: unknown) {
+    localError.value = (err as Error).message || 'Failed to remove team member.'
   }
 }
 
@@ -53,8 +53,8 @@ async function handleCancelInvitation(invitationId: string) {
   localError.value = null
   try {
     await organizationStore.cancelInvitation(invitationId)
-  } catch (err: any) {
-    localError.value = err.message || 'Failed to cancel invitation.'
+  } catch (err: unknown) {
+    localError.value = (err as Error).message || 'Failed to cancel invitation.'
   }
 }
 

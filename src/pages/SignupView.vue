@@ -2,13 +2,11 @@
 import { reactive, ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
-import { useOrganizationStore } from '../stores/organizationStore'
 import { COUNTRIES } from '../data/countries'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
-const organizationStore = useOrganizationStore()
 
 const pendingInviteOrg = ref(sessionStorage.getItem('pending_invite_org') || '')
 const pendingInviteEmail = ref(sessionStorage.getItem('pending_invite_email') || (route.query.email as string) || '')
@@ -86,8 +84,8 @@ async function handleSignup() {
 
     // Navigate cleanly to /verify without URL parameters
     router.push('/verify')
-  } catch (err: any) {
-    localError.value = err.message || 'Registration failed.'
+  } catch (err: unknown) {
+    localError.value = (err as Error).message || 'Registration failed.'
   } finally {
     isSubmitting.value = false
   }

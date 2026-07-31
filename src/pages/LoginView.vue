@@ -58,8 +58,8 @@ async function handleLogin() {
       const redirect = (route.query.redirect as string) || '/dashboard'
       router.push(redirect)
     }
-  } catch (err: any) {
-    localError.value = err.message || 'Login failed. Please check your credentials.'
+  } catch (err: unknown) {
+    localError.value = (err as Error).message || 'Login failed. Please check your credentials.'
   } finally {
     isSubmitting.value = false
   }
@@ -86,8 +86,8 @@ async function handleMfaSubmit() {
     await organizationStore.checkAndClaimPendingInvitation()
     const redirect = (route.query.redirect as string) || '/dashboard'
     router.push(redirect)
-  } catch (err: any) {
-    localError.value = err.message || 'Invalid authentication code.'
+  } catch (err: unknown) {
+    localError.value = (err as Error).message || 'Invalid authentication code.'
   } finally {
     isSubmitting.value = false
   }

@@ -2,7 +2,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useOrganizationStore, PERSONAL_WORKSPACE } from '../stores/organizationStore'
 import CreateOrganizationModal from './organizations/CreateOrganizationModal.vue'
-import type { OrganizationSchema } from '../types/organization'
 
 const organizationStore = useOrganizationStore()
 const isCreateModalOpen = ref(false)

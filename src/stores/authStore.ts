@@ -34,7 +34,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const stored = sessionStorage.getItem('pending_verification')
       return stored ? JSON.parse(stored) : null
-    } catch (e) {
+    } catch {
       return null
     }
   }
@@ -56,11 +56,12 @@ export const useAuthStore = defineStore('auth', () => {
     fieldErrors.value = {}
   }
 
-  function handleActionError(err: any, fallbackMessage: string) {
-    error.value = err.message || fallbackMessage
+  function handleActionError(err: unknown, fallbackMessage: string) {
+    const errorObj = err as { message?: string; errors?: ValidationErrorItem[] }
+    error.value = errorObj?.message || fallbackMessage
     const errorsMap: Record<string, string> = {}
-    if (Array.isArray(err.errors)) {
-      err.errors.forEach((item: ValidationErrorItem) => {
+    if (Array.isArray(errorObj?.errors)) {
+      errorObj.errors.forEach((item: ValidationErrorItem) => {
         if (item.field) {
           errorsMap[item.field] = item.message
         }
@@ -70,18 +71,23 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function setPendingVerification(data: PendingVerification) {
-    const updated = { ...(pendingVerification.value || {}), ...data } as PendingVerification
+    const base = pendingVerification.value || {}
+    const updated = { ...base, ...data } as PendingVerification
     pendingVerification.value = updated
     try {
       sessionStorage.setItem('pending_verification', JSON.stringify(updated))
-    } catch (e) {}
+    } catch {
+      // Ignore storage write errors
+    }
   }
 
   function clearPendingVerification() {
     pendingVerification.value = null
     try {
       sessionStorage.removeItem('pending_verification')
-    } catch (e) {}
+    } catch {
+      // Ignore storage remove errors
+    }
   }
 
   function clearBackupCodes() {
@@ -101,7 +107,7 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = null
       isAuthenticated.value = false
       return null
-    } catch (err: any) {
+    } catch {
       user.value = null
       isAuthenticated.value = false
       return null
@@ -127,7 +133,7 @@ export const useAuthStore = defineStore('auth', () => {
       organizationStore.resetStore()
       await fetchUser()
       return { mfaRequired: false }
-    } catch (err: any) {
+    } catch (err: unknown) {
       handleActionError(err, 'Login failed. Please check your credentials.')
       throw err
     } finally {
@@ -147,7 +153,7 @@ export const useAuthStore = defineStore('auth', () => {
       mfaRequired.value = false
       pendingCredentials.value = null
       await fetchUser()
-    } catch (err: any) {
+    } catch (err: unknown) {
       handleActionError(err, 'Invalid authenticator code.')
       throw err
     } finally {
@@ -166,7 +172,7 @@ export const useAuthStore = defineStore('auth', () => {
         type: 'email_verification',
       })
       return res.message
-    } catch (err: any) {
+    } catch (err: unknown) {
       handleActionError(err, 'Registration failed.')
       throw err
     } finally {
@@ -183,7 +189,7 @@ export const useAuthStore = defineStore('auth', () => {
         await fetchUser()
       }
       return res.message
-    } catch (err: any) {
+    } catch (err: unknown) {
       handleActionError(err, 'Verification failed.')
       throw err
     } finally {
@@ -197,7 +203,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const res = await authService.resendOtp(payload)
       return res.message
-    } catch (err: any) {
+    } catch (err: unknown) {
       handleActionError(err, 'Failed to resend code.')
       throw err
     } finally {
@@ -212,7 +218,7 @@ export const useAuthStore = defineStore('auth', () => {
       const res = await authService.resetPassword(payload)
       clearPendingVerification()
       return res.message
-    } catch (err: any) {
+    } catch (err: unknown) {
       handleActionError(err, 'Failed to reset password.')
       throw err
     } finally {
@@ -230,7 +236,7 @@ export const useAuthStore = defineStore('auth', () => {
         return res.data
       }
       throw new Error('Failed to retrieve MFA setup data.')
-    } catch (err: any) {
+    } catch (err: unknown) {
       handleActionError(err, 'Failed to initialize 2FA.')
       throw err
     } finally {
@@ -247,7 +253,7 @@ export const useAuthStore = defineStore('auth', () => {
       backupCodes.value = codes
       await fetchUser()
       return codes
-    } catch (err: any) {
+    } catch (err: unknown) {
       handleActionError(err, 'MFA verification failed.')
       throw err
     } finally {
@@ -259,7 +265,7 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true
     try {
       await authService.logout()
-    } catch (err) {
+    } catch {
       // Ignore logout errors and clean local state
     } finally {
       user.value = null

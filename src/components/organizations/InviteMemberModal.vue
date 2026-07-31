@@ -36,8 +36,8 @@ async function handleInvite() {
     })
     createdInvite.value = invite
     emit('invited')
-  } catch (err: any) {
-    localError.value = err.message || 'Failed to send invitation.'
+  } catch (err: unknown) {
+    localError.value = (err as Error).message || 'Failed to send invitation.'
   } finally {
     isSubmitting.value = false
   }

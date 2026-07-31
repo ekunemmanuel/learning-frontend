@@ -7,7 +7,6 @@ import type {
   InvitationSchema,
   MemberSchema,
   OrganizationSchema,
-  UpdateMemberRolePayload,
   UpdateOrganizationPayload,
 } from '../types/organization'
 
@@ -76,8 +75,8 @@ export const useOrganizationStore = defineStore('organization', () => {
         currentOrganization.value = PERSONAL_WORKSPACE
       }
       return organizations.value
-    } catch (err: any) {
-      error.value = err.message || 'Failed to load user organizations.'
+    } catch (err: unknown) {
+      error.value = (err as Error).message || 'Failed to load user organizations.'
       return organizations.value
     } finally {
       isLoading.value = false
@@ -95,8 +94,8 @@ export const useOrganizationStore = defineStore('organization', () => {
         return res.data
       }
       throw new Error('Failed to create organization.')
-    } catch (err: any) {
-      error.value = err.message || 'Failed to create organization workspace.'
+    } catch (err: unknown) {
+      error.value = (err as Error).message || 'Failed to create organization workspace.'
       throw err
     } finally {
       isLoading.value = false
@@ -120,8 +119,8 @@ export const useOrganizationStore = defineStore('organization', () => {
         return res.data
       }
       throw new Error('Failed to update organization.')
-    } catch (err: any) {
-      error.value = err.message || 'Failed to update organization.'
+    } catch (err: unknown) {
+      error.value = (err as Error).message || 'Failed to update organization.'
       throw err
     } finally {
       isLoading.value = false
@@ -138,8 +137,8 @@ export const useOrganizationStore = defineStore('organization', () => {
       await organizationService.deleteOrganization(currentOrganization.value.id)
       organizations.value = organizations.value.filter((o) => o.id !== currentOrganization.value.id)
       setCurrentOrganization(PERSONAL_WORKSPACE)
-    } catch (err: any) {
-      error.value = err.message || 'Failed to delete organization.'
+    } catch (err: unknown) {
+      error.value = (err as Error).message || 'Failed to delete organization.'
       throw err
     } finally {
       isLoading.value = false
@@ -154,8 +153,8 @@ export const useOrganizationStore = defineStore('organization', () => {
       const res = await organizationService.getMembers(currentOrganization.value.id)
       members.value = res.data || []
       return members.value
-    } catch (err: any) {
-      error.value = err.message || 'Failed to load team members.'
+    } catch (err: unknown) {
+      error.value = (err as Error).message || 'Failed to load team members.'
       return []
     } finally {
       isLoading.value = false
@@ -175,8 +174,8 @@ export const useOrganizationStore = defineStore('organization', () => {
         return res.data
       }
       throw new Error('Failed to update member role.')
-    } catch (err: any) {
-      error.value = err.message || 'Failed to update member role.'
+    } catch (err: unknown) {
+      error.value = (err as Error).message || 'Failed to update member role.'
       throw err
     } finally {
       isLoading.value = false
@@ -189,8 +188,8 @@ export const useOrganizationStore = defineStore('organization', () => {
     try {
       await organizationService.removeMember(currentOrganization.value.id, memberId)
       members.value = members.value.filter((m) => m.id !== memberId)
-    } catch (err: any) {
-      error.value = err.message || 'Failed to remove team member.'
+    } catch (err: unknown) {
+      error.value = (err as Error).message || 'Failed to remove team member.'
       throw err
     } finally {
       isLoading.value = false
@@ -205,8 +204,8 @@ export const useOrganizationStore = defineStore('organization', () => {
       const res = await organizationService.getInvitations(currentOrganization.value.id)
       invitations.value = res.data || []
       return invitations.value
-    } catch (err: any) {
-      error.value = err.message || 'Failed to load pending invitations.'
+    } catch (err: unknown) {
+      error.value = (err as Error).message || 'Failed to load pending invitations.'
       return []
     } finally {
       isLoading.value = false
@@ -223,8 +222,8 @@ export const useOrganizationStore = defineStore('organization', () => {
         return res.data
       }
       throw new Error('Failed to create invitation.')
-    } catch (err: any) {
-      error.value = err.message || 'Failed to invite team member.'
+    } catch (err: unknown) {
+      error.value = (err as Error).message || 'Failed to invite team member.'
       throw err
     } finally {
       isLoading.value = false
@@ -237,8 +236,8 @@ export const useOrganizationStore = defineStore('organization', () => {
     try {
       await organizationService.cancelInvitation(currentOrganization.value.id, invitationId)
       invitations.value = invitations.value.filter((i) => i.id !== invitationId)
-    } catch (err: any) {
-      error.value = err.message || 'Failed to cancel invitation.'
+    } catch (err: unknown) {
+      error.value = (err as Error).message || 'Failed to cancel invitation.'
       throw err
     } finally {
       isLoading.value = false
@@ -251,8 +250,8 @@ export const useOrganizationStore = defineStore('organization', () => {
     try {
       await organizationService.acceptInvitation({ token })
       await fetchUserOrganizations()
-    } catch (err: any) {
-      error.value = err.message || 'Failed to accept invitation.'
+    } catch (err: unknown) {
+      error.value = (err as Error).message || 'Failed to accept invitation.'
       throw err
     } finally {
       isLoading.value = false
@@ -268,7 +267,7 @@ export const useOrganizationStore = defineStore('organization', () => {
         sessionStorage.removeItem('pending_invite_email')
         sessionStorage.removeItem('pending_invite_org')
         return true
-      } catch (err) {
+      } catch (err: unknown) {
         sessionStorage.removeItem('pending_invite_token')
         return false
       }

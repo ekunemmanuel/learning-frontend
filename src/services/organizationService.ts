@@ -12,6 +12,15 @@ import type {
 
 const API_BASE_URL = 'http://localhost:3000/organizations'
 
+export class ApiError extends Error {
+  errors?: unknown[]
+  constructor(message: string, errors?: unknown[]) {
+    super(message)
+    this.name = 'ApiError'
+    this.errors = errors
+  }
+}
+
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
   const defaultHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -29,9 +38,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   const json = await response.json().catch(() => ({}))
 
   if (!response.ok || (json && json.success === false)) {
-    const err: any = new Error(json.message || `Request failed with status ${response.status}`)
-    err.errors = json.errors || []
-    throw err
+    throw new ApiError(json.message || `Request failed with status ${response.status}`, json.errors || [])
   }
 
   return json

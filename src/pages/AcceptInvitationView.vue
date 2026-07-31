@@ -80,8 +80,8 @@ async function claimInvitation() {
     setTimeout(() => {
       router.push('/dashboard')
     }, 1200)
-  } catch (err: any) {
-    localError.value = err.message || 'Failed to claim invitation token.'
+  } catch (err: unknown) {
+    localError.value = (err as Error).message || 'Failed to claim invitation token.'
     clearInviteSession()
   } finally {
     isSubmitting.value = false
