@@ -1,33 +1,59 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watchEffect } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { useOrganizationStore } from '../stores/organizationStore'
 
-const links = computed(() => [
-  {
-    label: 'General',
-    icon: 'i-lucide-settings',
-    to: '/settings',
-    exact: true,
-  },
-  {
-    label: 'Members & Team',
-    icon: 'i-lucide-users',
-    to: '/settings/members',
-  },
-  {
-    label: 'Notifications',
-    icon: 'i-lucide-bell',
-    to: '/settings/notifications',
-  },
-  {
-    label: 'Security & 2FA',
-    icon: 'i-lucide-shield-check',
-    to: '/settings/security',
-  },
-])
+const router = useRouter()
+const route = useRoute()
+const organizationStore = useOrganizationStore()
+
+// Auto-redirect personal workspace users away from org-only settings tabs
+watchEffect(() => {
+  if (organizationStore.isPersonalWorkspace) {
+    if (
+      route.path === '/settings' ||
+      route.path === '/settings/' ||
+      route.path === '/settings/members'
+    ) {
+      router.replace('/settings/security')
+    }
+  }
+})
+
+const links = computed(() => {
+  if (organizationStore.isPersonalWorkspace) {
+    return [
+      {
+        label: 'Security & 2FA',
+        icon: 'i-lucide-shield-check',
+        to: '/settings/security',
+      },
+    ]
+  }
+
+  return [
+    {
+      label: 'General',
+      icon: 'i-lucide-settings',
+      to: '/settings',
+      exact: true,
+    },
+    {
+      label: 'Members & Team',
+      icon: 'i-lucide-users',
+      to: '/settings/members',
+    },
+    {
+      label: 'Security & 2FA',
+      icon: 'i-lucide-shield-check',
+      to: '/settings/security',
+    },
+  ]
+})
 </script>
 
 <template>
-<UDashboardPanel id="settings" :ui="{ body: '' }">
+  <UDashboardPanel id="settings" :ui="{ body: '' }">
     <template #header>
       <UDashboardNavbar title="Settings">
         <template #leading>

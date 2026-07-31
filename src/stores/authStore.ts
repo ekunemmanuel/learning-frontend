@@ -116,15 +116,31 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function login(identifier: string, password: string): Promise<{ mfaRequired: boolean }> {
+  async function login(
+    identifier: string,
+    password: string,
+  ): Promise<{ mfaRequired: boolean; requiresVerification: boolean; message?: string }> {
     isLoading.value = true
     clearError()
     try {
       const res = await authService.login({ identifier, password })
+      if (res.data?.requiresVerification) {
+        setPendingVerification({
+          identifier: res.data.email || identifier,
+          email: res.data.email || identifier,
+          type: 'email_verification',
+        })
+        return {
+          mfaRequired: false,
+          requiresVerification: true,
+          message: res.data.message || res.message,
+        }
+      }
+
       if (res.data?.mfaRequired) {
         mfaRequired.value = true
         pendingCredentials.value = { identifier, password }
-        return { mfaRequired: true }
+        return { mfaRequired: true, requiresVerification: false }
       }
 
       mfaRequired.value = false
@@ -132,7 +148,7 @@ export const useAuthStore = defineStore('auth', () => {
       const organizationStore = useOrganizationStore()
       organizationStore.resetStore()
       await fetchUser()
-      return { mfaRequired: false }
+      return { mfaRequired: false, requiresVerification: false }
     } catch (err: unknown) {
       handleActionError(err, 'Login failed. Please check your credentials.')
       throw err
@@ -287,6 +303,14 @@ export const useAuthStore = defineStore('auth', () => {
     pendingCredentials.value = null
   }
 
+  function disableMfa() {
+    if (user.value) {
+      user.value.isMfaEnabled = false
+    }
+    mfaSetupData.value = null
+    backupCodes.value = []
+  }
+
   return {
     user,
     isAuthenticated,
@@ -317,5 +341,6 @@ export const useAuthStore = defineStore('auth', () => {
     verifyMfa,
     logout,
     cancelMfaStep,
+    disableMfa,
   }
 })

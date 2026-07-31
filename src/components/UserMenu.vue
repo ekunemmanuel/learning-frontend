@@ -63,11 +63,6 @@ const items = computed<DropdownMenuItem[][]>(() => [
       to: '/profile',
     },
     {
-      label: 'Security & 2FA',
-      icon: 'i-lucide-shield-check',
-      to: '/settings/security',
-    },
-    {
       label: 'Settings',
       icon: 'i-lucide-settings',
       to: '/settings',
@@ -156,14 +151,6 @@ const items = computed<DropdownMenuItem[][]>(() => [
           },
         },
       ],
-    },
-  ],
-  [
-    {
-      label: 'Documentation',
-      icon: 'i-lucide-book-open',
-      to: 'https://ui.nuxt.com/docs/getting-started/installation/vue',
-      target: '_blank',
     },
   ],
   [

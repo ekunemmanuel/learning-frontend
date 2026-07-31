@@ -5,45 +5,27 @@ import type { NavigationMenuItem } from '@nuxt/ui'
 import TeamsMenu from '../components/TeamsMenu.vue'
 import UserMenu from '../components/UserMenu.vue'
 import NotificationsSlideover from '../components/NotificationsSlideover.vue'
+import { useOrganizationStore } from '../stores/organizationStore'
 
 const toast = useToast()
+const organizationStore = useOrganizationStore()
 
 const open = ref(false)
 
-const links = [
-  [
-    {
-      label: 'Dashboard',
-      icon: 'i-lucide-house',
-      to: '/dashboard',
-      onSelect: () => {
-        open.value = false
-      },
-    },
-    {
-      label: 'Inbox',
-      icon: 'i-lucide-inbox',
-      to: '/inbox',
-      badge: '4',
-      onSelect: () => {
-        open.value = false
-      },
-    },
-    {
-      label: 'Customers',
-      icon: 'i-lucide-users',
-      to: '/customers',
-      onSelect: () => {
-        open.value = false
-      },
-    },
-    {
-      label: 'Settings',
-      to: '/settings',
-      icon: 'i-lucide-settings',
-      defaultOpen: true,
-      type: 'trigger' as const,
-      children: [
+const links = computed<NavigationMenuItem[][]>(() => {
+  const isPersonal = organizationStore.isPersonalWorkspace
+
+  const settingsChildren: NavigationMenuItem[] = isPersonal
+    ? [
+        {
+          label: 'Security',
+          to: '/settings/security',
+          onSelect: () => {
+            open.value = false
+          },
+        },
+      ]
+    : [
         {
           label: 'General',
           to: '/settings',
@@ -60,31 +42,77 @@ const links = [
           },
         },
         {
-          label: 'Notifications',
-          to: '/settings/notifications',
-          onSelect: () => {
-            open.value = false
-          },
-        },
-        {
           label: 'Security',
           to: '/settings/security',
           onSelect: () => {
             open.value = false
           },
         },
+      ]
+
+  return [
+    [
+      {
+        label: 'Dashboard',
+        icon: 'i-lucide-house',
+        to: '/dashboard',
+        onSelect: () => {
+          open.value = false
+        },
+      },
+      {
+        label: 'Settings',
+        to: isPersonal ? '/settings/security' : '/settings',
+        icon: 'i-lucide-settings',
+        defaultOpen: true,
+        type: 'trigger' as const,
+        children: settingsChildren,
+      },
+    ],
+  ]
+})
+
+const groups = computed(() => {
+  const isPersonal = organizationStore.isPersonalWorkspace
+  return [
+    {
+      id: 'links',
+      label: 'Go to',
+      items: [
+        {
+          label: 'Dashboard',
+          icon: 'i-lucide-house',
+          to: '/dashboard',
+        },
+        ...(isPersonal
+          ? [
+              {
+                label: 'Security & 2FA',
+                icon: 'i-lucide-shield-check',
+                to: '/settings/security',
+              },
+            ]
+          : [
+              {
+                label: 'General Settings',
+                icon: 'i-lucide-settings',
+                to: '/settings',
+              },
+              {
+                label: 'Members & Team',
+                icon: 'i-lucide-users',
+                to: '/settings/members',
+              },
+              {
+                label: 'Security & 2FA',
+                icon: 'i-lucide-shield-check',
+                to: '/settings/security',
+              },
+            ]),
       ],
     },
-  ],
-] satisfies NavigationMenuItem[][]
-
-const groups = computed(() => [
-  {
-    id: 'links',
-    label: 'Go to',
-    items: links.flat(),
-  },
-])
+  ]
+})
 
 const cookie = useStorage('cookie-consent', 'pending')
 if (cookie.value !== 'accepted') {

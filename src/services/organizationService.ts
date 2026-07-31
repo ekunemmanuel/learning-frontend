@@ -138,8 +138,10 @@ export const organizationService = {
     )
   },
 
-  acceptInvitation(payload: AcceptInvitationPayload): Promise<ApiResponse<null>> {
-    return request<null>('/invitations/accept', {
+  acceptInvitation(
+    payload: AcceptInvitationPayload,
+  ): Promise<ApiResponse<{ message: string; organizationId?: string }>> {
+    return request<{ message: string; organizationId?: string }>('/invitations/accept', {
       method: 'POST',
       body: JSON.stringify(payload),
     })

@@ -23,6 +23,8 @@ export const PERSONAL_WORKSPACE: OrganizationSchema = {
 }
 
 export const useOrganizationStore = defineStore('organization', () => {
+  const toast = useToast()
+
   const organizations = ref<OrganizationSchema[]>([PERSONAL_WORKSPACE])
   const currentOrganization = ref<OrganizationSchema>(PERSONAL_WORKSPACE)
 
@@ -44,6 +46,7 @@ export const useOrganizationStore = defineStore('organization', () => {
 
   function setCurrentOrganization(org: OrganizationSchema) {
     currentOrganization.value = org
+    localStorage.setItem('active_org_id', org.id)
     if (!isPersonalWorkspace.value) {
       fetchMembers()
       if (isCurrentOrgAdmin.value) {
@@ -58,6 +61,7 @@ export const useOrganizationStore = defineStore('organization', () => {
   function resetStore() {
     organizations.value = [PERSONAL_WORKSPACE]
     currentOrganization.value = PERSONAL_WORKSPACE
+    localStorage.removeItem('active_org_id')
     members.value = []
     invitations.value = []
     error.value = null
@@ -71,11 +75,17 @@ export const useOrganizationStore = defineStore('organization', () => {
       const fetchedOrgs = res.data || []
       organizations.value = [PERSONAL_WORKSPACE, ...fetchedOrgs]
 
-      // By default, always maintain or revert to Personal Workspace on user load/login
-      const found = fetchedOrgs.find((o) => o.id === currentOrganization.value.id)
-      if (!found) {
-        currentOrganization.value = PERSONAL_WORKSPACE
+      const savedOrgId = localStorage.getItem('active_org_id')
+      let activeOrg = PERSONAL_WORKSPACE
+
+      if (savedOrgId) {
+        const found = organizations.value.find((o) => o.id === savedOrgId)
+        if (found) {
+          activeOrg = found
+        }
       }
+
+      setCurrentOrganization(activeOrg)
       return organizations.value
     } catch (err: unknown) {
       error.value = (err as Error).message || 'Failed to load user organizations.'
@@ -260,12 +270,27 @@ export const useOrganizationStore = defineStore('organization', () => {
     }
   }
 
-  async function acceptInvitation(token: string): Promise<void> {
+  async function acceptInvitation(token: string): Promise<OrganizationSchema | null> {
     isLoading.value = true
     clearError()
     try {
-      await organizationService.acceptInvitation({ token })
-      await fetchUserOrganizations()
+      const res = await organizationService.acceptInvitation({ token })
+      const updatedOrgs = await fetchUserOrganizations()
+      const joinedOrgId = res.data?.organizationId
+
+      let joinedOrg: OrganizationSchema | null = null
+      if (joinedOrgId) {
+        joinedOrg = updatedOrgs.find((o) => o.id === joinedOrgId) || null
+      }
+      if (!joinedOrg && updatedOrgs.length > 1) {
+        // Fall back to the most recently created non-personal organization
+        joinedOrg = updatedOrgs[updatedOrgs.length - 1] || null
+      }
+
+      if (joinedOrg) {
+        setCurrentOrganization(joinedOrg)
+      }
+      return joinedOrg
     } catch (err: unknown) {
       error.value = (err as Error).message || 'Failed to accept invitation.'
       throw err
@@ -276,16 +301,38 @@ export const useOrganizationStore = defineStore('organization', () => {
 
   async function checkAndClaimPendingInvitation(): Promise<boolean> {
     const pendingToken = sessionStorage.getItem('pending_invite_token')
+    const pendingOrgName = sessionStorage.getItem('pending_invite_org') || ''
+
     if (pendingToken) {
       try {
-        await acceptInvitation(pendingToken)
+        const joinedOrg = await acceptInvitation(pendingToken)
         sessionStorage.removeItem('pending_invite_token')
         sessionStorage.removeItem('pending_invite_email')
         sessionStorage.removeItem('pending_invite_org')
+
+        const activeWorkspaceName =
+          joinedOrg?.name ||
+          (currentOrganization.value?.name !== 'Personal Workspace'
+            ? currentOrganization.value.name
+            : pendingOrgName || 'the organization')
+
+        toast.add({
+          title: 'Welcome!',
+          description: `You're now a member of '${activeWorkspaceName}'.`,
+          color: 'success',
+        })
         return true
       } catch (err: unknown) {
+        const errMsg = (err as Error).message || 'Failed to accept organization invitation.'
         console.error('Failed to accept invitation:', err)
         sessionStorage.removeItem('pending_invite_token')
+        sessionStorage.removeItem('pending_invite_email')
+        sessionStorage.removeItem('pending_invite_org')
+        toast.add({
+          title: 'Invitation Failed',
+          description: errMsg,
+          color: 'error',
+        })
         return false
       }
     }

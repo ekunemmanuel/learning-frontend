@@ -23,7 +23,7 @@ export interface ValidationErrorItem {
   message: string
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean
   message: string
   data?: T
@@ -58,6 +58,9 @@ export interface LoginMfaPayload {
 
 export interface LoginResponseData {
   mfaRequired: boolean
+  requiresVerification?: boolean
+  email?: string
+  message?: string
   user: MinimalUser | null
   refreshToken: string | null
 }

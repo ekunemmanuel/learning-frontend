@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { DropdownMenuItem } from '@nuxt/ui'
 import HomeStats from '../components/home/HomeStats.vue'
 import HomeChart from '../components/home/HomeChart.vue'
 import HomeSales from '../components/home/HomeSales.vue'
@@ -7,20 +6,6 @@ import { useDashboard } from '../composables/useDashboard'
 
 const { isNotificationsSlideoverOpen } = useDashboard()
 
-const items = [
-  [
-    {
-      label: 'New customer',
-      icon: 'i-lucide-user-plus',
-      to: '/customers',
-    },
-    {
-      label: 'Organization Settings',
-      icon: 'i-lucide-building',
-      to: '/settings/members',
-    },
-  ],
-] satisfies DropdownMenuItem[][]
 </script>
 
 <template>
@@ -44,10 +29,6 @@ const items = [
               </UChip>
             </UButton>
           </UTooltip>
-
-          <UDropdownMenu :items="items">
-            <UButton icon="i-lucide-plus" size="md" class="rounded-full" />
-          </UDropdownMenu>
         </template>
       </UDashboardNavbar>
     </template>

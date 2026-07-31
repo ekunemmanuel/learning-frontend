@@ -3,6 +3,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import { z } from 'zod'
 import { useOrganizationStore } from '../../stores/organizationStore'
 
+const toast = useToast()
 const organizationStore = useOrganizationStore()
 
 const formState = reactive({
@@ -22,48 +23,40 @@ watch(
 const isSubmitting = ref(false)
 const isDeleting = ref(false)
 const isDeleteConfirmOpen = ref(false)
-const localError = ref<string | null>(null)
-const localSuccess = ref<string | null>(null)
 
 // Computed Properties for template boolean conditions
 const isPersonalWorkspace = computed(() => organizationStore.isPersonalWorkspace)
 const isCurrentOrgAdmin = computed(() => organizationStore.isCurrentOrgAdmin)
 const isCurrentOrgOwner = computed(() => organizationStore.isCurrentOrgOwner)
 const showDangerZone = computed(() => !isPersonalWorkspace.value && isCurrentOrgOwner.value)
-const hasError = computed(() => localError.value || organizationStore.error)
 
 // Delete confirmation & Zod validation
 const deleteFormRef = ref()
 const expectedNameAllCaps = computed(() => organizationStore.currentOrganization.name.toUpperCase())
 
-const baseDeleteSchema = z.object({
-  confirmName: z.string(),
-})
-
-type DeleteSchema = z.output<typeof baseDeleteSchema>
-
 const deleteSchema = computed(() =>
   z.object({
-    confirmName: z
-      .string()
-      .refine((val) => val === expectedNameAllCaps.value, {
-        message: `Please type '${expectedNameAllCaps.value}' exactly in ALL CAPS to confirm deletion.`,
-      }),
+    confirmName: z.string().refine((val) => val === expectedNameAllCaps.value, {
+      message: `Please type '${expectedNameAllCaps.value}' exactly in ALL CAPS to confirm deletion.`,
+    }),
   }),
 )
 
-const deleteFormState = reactive<Partial<DeleteSchema>>({
+type DeleteSchema = { confirmName?: string }
+
+const deleteFormState = reactive<DeleteSchema>({
   confirmName: '',
 })
 
-const isDeleteInputValid = computed(
-  () => deleteFormState.confirmName === expectedNameAllCaps.value,
-)
+const isDeleteInputValid = computed(() => deleteFormState.confirmName === expectedNameAllCaps.value)
 
 // 5-Second Countdown & Undo timer logic
 const countdownSeconds = ref(5)
 const isCountingDown = ref(false)
 let countdownTimer: ReturnType<typeof setInterval> | null = null
+
+const isModalDismissible = computed(() => !isCountingDown.value)
+const isModalCloseable = computed(() => !isCountingDown.value)
 
 function cancelCountdown() {
   if (countdownTimer) {
@@ -74,8 +67,40 @@ function cancelCountdown() {
   countdownSeconds.value = 5
 }
 
-function startDeleteCountdown() {
-  isDeleteConfirmOpen.value = false
+async function openDeleteModal() {
+  await organizationStore.fetchMembers()
+  if (organizationStore.members.length > 1) {
+    toast.add({
+      title: 'Cannot Delete Workspace',
+      description: 'You must remove all other active team members before deleting this workspace.',
+      color: 'error',
+    })
+    return
+  }
+  isDeleteConfirmOpen.value = true
+}
+
+async function handleConfirmOrUndo() {
+  if (isCountingDown.value) {
+    // If currently counting down, user clicked Undo
+    cancelCountdown()
+    return
+  }
+
+  if (!isDeleteInputValid.value) return
+
+  // Pre-check UI member count before starting undo phase
+  if (organizationStore.members.length > 1) {
+    toast.add({
+      title: 'Cannot Delete Workspace',
+      description: 'You must remove all other active team members before deleting this workspace.',
+      color: 'error',
+    })
+    isDeleteConfirmOpen.value = false
+    return
+  }
+
+  // Start 5-second in-modal countdown
   isCountingDown.value = true
   countdownSeconds.value = 5
 
@@ -93,24 +118,36 @@ function startDeleteCountdown() {
 }
 
 async function executeDeleteWorkspace() {
-  localError.value = null
   isDeleting.value = true
 
   try {
     await organizationStore.deleteOrganization()
-    localSuccess.value = 'Organization workspace deleted successfully.'
+    isDeleteConfirmOpen.value = false
     deleteFormState.confirmName = ''
+    toast.add({
+      title: 'Workspace Deleted',
+      description: 'Organization workspace has been deleted successfully.',
+      color: 'success',
+    })
   } catch (err: unknown) {
-    localError.value = (err as Error).message || 'Failed to delete organization.'
+    toast.add({
+      title: 'Delete Failed',
+      description: (err as Error).message || 'Failed to delete organization workspace.',
+      color: 'error',
+    })
   } finally {
     isDeleting.value = false
   }
 }
 
+function handleCloseModal() {
+  cancelCountdown()
+  deleteFormState.confirmName = ''
+  isDeleteConfirmOpen.value = false
+}
+
 async function handleSave() {
   if (!formState.name.trim()) return
-  localError.value = null
-  localSuccess.value = null
   isSubmitting.value = true
 
   try {
@@ -118,9 +155,17 @@ async function handleSave() {
       name: formState.name.trim(),
       billingPlan: formState.billingPlan,
     })
-    localSuccess.value = 'Organization workspace updated successfully!'
+    toast.add({
+      title: 'Success',
+      description: 'Organization workspace updated successfully!',
+      color: 'success',
+    })
   } catch (err: unknown) {
-    localError.value = (err as Error).message || 'Failed to update organization.'
+    toast.add({
+      title: 'Error',
+      description: (err as Error).message || 'Failed to update organization.',
+      color: 'error',
+    })
   } finally {
     isSubmitting.value = false
   }
@@ -129,45 +174,6 @@ async function handleSave() {
 
 <template>
   <div class="space-y-6">
-    <!-- Success Alert -->
-    <UAlert
-      v-if="localSuccess"
-      color="success"
-      variant="soft"
-      icon="i-lucide-check-circle-2"
-      :title="localSuccess"
-    />
-
-    <!-- Error Alert -->
-    <UAlert
-      v-if="hasError"
-      color="error"
-      variant="soft"
-      icon="i-lucide-alert-circle"
-      :title="hasError || ''"
-    />
-
-    <!-- 5-Second Delete Countdown Alert with Undo -->
-    <UAlert
-      v-if="isCountingDown"
-      color="warning"
-      variant="soft"
-      icon="i-lucide-timer"
-      :title="`Deleting workspace '${organizationStore.currentOrganization.name}' in ${countdownSeconds} seconds...`"
-    >
-      <template #actions>
-        <UButton
-          color="warning"
-          variant="solid"
-          size="xs"
-          class="font-bold"
-          @click="cancelCountdown"
-        >
-          Undo Action
-        </UButton>
-      </template>
-    </UAlert>
-
     <!-- Personal Workspace Info Banner -->
     <div
       v-if="isPersonalWorkspace"
@@ -184,11 +190,7 @@ async function handleSave() {
         required
         help="The public display name of your company or team"
       >
-        <UInput
-          v-model="formState.name"
-          class="w-full"
-          :disabled="!isCurrentOrgAdmin"
-        />
+        <UInput v-model="formState.name" class="w-full" :disabled="!isCurrentOrgAdmin" />
       </UFormField>
 
       <!-- Workspace URL Slug (Commented out) -->
@@ -236,32 +238,35 @@ async function handleSave() {
           </p>
         </div>
 
-        <UButton
-          color="error"
-          variant="solid"
-          size="sm"
-          class="font-bold shrink-0"
-          :disabled="isCountingDown"
-          @click="isDeleteConfirmOpen = true"
-        >
-          Delete Workspace
-        </UButton>
+        <div class="w-full sm:w-auto">
+          <UButton
+            color="error"
+            variant="solid"
+            size="sm"
+            class="font-bold"
+            block
+            @click="openDeleteModal"
+          >
+            Delete Workspace
+          </UButton>
+        </div>
       </div>
     </div>
 
-    <!-- Confirm Deletion Modal with Zod Validation -->
+    <!-- Confirm Deletion Modal with In-Modal Undo & Zod Validation -->
     <UModal
       v-model:open="isDeleteConfirmOpen"
       title="Delete Organization Workspace"
-      :description="`This action cannot be undone. To confirm, please type '${expectedNameAllCaps}' below in ALL CAPS.`"
+      description="This action cannot be undone."
+      :dismissible="isModalDismissible"
+      :close="isModalCloseable"
     >
       <template #body>
         <UForm
           ref="deleteFormRef"
           :schema="deleteSchema"
           :state="deleteFormState"
-          class="space-y-4 py-2"
-          @submit="startDeleteCountdown"
+          @submit="handleConfirmOrUndo"
         >
           <UFormField
             :label="`Type '${expectedNameAllCaps}' to confirm`"
@@ -271,6 +276,7 @@ async function handleSave() {
             <UInput
               v-model="deleteFormState.confirmName"
               :placeholder="expectedNameAllCaps"
+              :disabled="isCountingDown"
               class="w-full font-mono text-xs uppercase"
               autofocus
             />
@@ -283,16 +289,19 @@ async function handleSave() {
           <UButton
             color="neutral"
             variant="outline"
-            @click="isDeleteConfirmOpen = false"
+            :disabled="isDeleting || isCountingDown"
+            @click="handleCloseModal"
           >
             Cancel
           </UButton>
           <UButton
-            color="error"
-            :disabled="!isDeleteInputValid"
-            @click="deleteFormRef?.submit()"
+            :color="isCountingDown ? 'warning' : isDeleteInputValid ? 'error' : 'neutral'"
+            :variant="isCountingDown || isDeleteInputValid ? 'solid' : 'ghost'"
+            :disabled="!isDeleteInputValid && !isCountingDown"
+            :loading="isDeleting"
+            @click="handleConfirmOrUndo"
           >
-            Confirm & Delete Workspace
+            {{ isCountingDown ? `Undo (${countdownSeconds}s)` : 'Confirm & Delete Workspace' }}
           </UButton>
         </div>
       </template>

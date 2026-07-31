@@ -1,24 +1,22 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/authStore'
 
+import AuthLayout from '../layouts/AuthLayout.vue'
 import DashboardLayout from '../layouts/DashboardLayout.vue'
 
-import LoginView from '../pages/LoginView.vue'
-import SignupView from '../pages/SignupView.vue'
-import VerifyView from '../pages/VerifyView.vue'
-import ForgotPasswordView from '../pages/ForgotPasswordView.vue'
-import ResetPasswordView from '../pages/ResetPasswordView.vue'
+import LoginView from '../pages/auth/LoginView.vue'
+import SignupView from '../pages/auth/SignupView.vue'
+import VerifyView from '../pages/auth/VerifyView.vue'
+import ForgotPasswordView from '../pages/auth/ForgotPasswordView.vue'
+import ResetPasswordView from '../pages/auth/ResetPasswordView.vue'
 import AcceptInvitationView from '../pages/AcceptInvitationView.vue'
 
 import DashboardView from '../pages/DashboardView.vue'
-import CustomersView from '../pages/CustomersView.vue'
-import InboxView from '../pages/InboxView.vue'
 import ProfileView from '../pages/ProfileView.vue'
 
 import SettingsView from '../pages/SettingsView.vue'
 import SettingsGeneralView from '../pages/settings/SettingsGeneralView.vue'
 import SettingsMembersView from '../pages/settings/SettingsMembersView.vue'
-import SettingsNotificationsView from '../pages/settings/SettingsNotificationsView.vue'
 import SettingsSecurityView from '../pages/settings/SettingsSecurityView.vue'
 
 const router = createRouter({
@@ -28,39 +26,45 @@ const router = createRouter({
       path: '/',
       redirect: '/dashboard',
     },
-    // Guest Authentication Routes (kept unchanged)
+    // Guest Authentication Routes (Single Source of Truth Layout)
     {
-      path: '/login',
-      name: 'login',
-      component: LoginView,
-      meta: { guestOnly: true },
-    },
-    {
-      path: '/signup',
-      name: 'signup',
-      component: SignupView,
-      meta: { guestOnly: true },
-    },
-    {
-      path: '/verify',
-      name: 'verify',
-      component: VerifyView,
-    },
-    {
-      path: '/forgot-password',
-      name: 'forgot-password',
-      component: ForgotPasswordView,
-      meta: { guestOnly: true },
-    },
-    {
-      path: '/reset-password',
-      name: 'reset-password',
-      component: ResetPasswordView,
-    },
-    {
-      path: '/invitations/accept',
-      name: 'accept-invitation',
-      component: AcceptInvitationView,
+      path: '/',
+      component: AuthLayout,
+      children: [
+        {
+          path: 'login',
+          name: 'login',
+          component: LoginView,
+          meta: { guestOnly: true },
+        },
+        {
+          path: 'signup',
+          name: 'signup',
+          component: SignupView,
+          meta: { guestOnly: true },
+        },
+        {
+          path: 'verify',
+          name: 'verify',
+          component: VerifyView,
+        },
+        {
+          path: 'forgot-password',
+          name: 'forgot-password',
+          component: ForgotPasswordView,
+          meta: { guestOnly: true },
+        },
+        {
+          path: 'reset-password',
+          name: 'reset-password',
+          component: ResetPasswordView,
+        },
+        {
+          path: 'invitations/accept',
+          name: 'accept-invitation',
+          component: AcceptInvitationView,
+        },
+      ],
     },
     // Protected Dashboard Layout Routes
     {
@@ -72,16 +76,6 @@ const router = createRouter({
           path: 'dashboard',
           name: 'dashboard',
           component: DashboardView,
-        },
-        {
-          path: 'customers',
-          name: 'customers',
-          component: CustomersView,
-        },
-        {
-          path: 'inbox',
-          name: 'inbox',
-          component: InboxView,
         },
         {
           path: 'profile',
@@ -101,11 +95,6 @@ const router = createRouter({
               path: 'members',
               name: 'settings-members',
               component: SettingsMembersView,
-            },
-            {
-              path: 'notifications',
-              name: 'settings-notifications',
-              component: SettingsNotificationsView,
             },
             {
               path: 'security',

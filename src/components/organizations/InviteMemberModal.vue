@@ -1,22 +1,31 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { reactive, ref, computed } from 'vue'
+import { z } from 'zod'
+import type { FormSubmitEvent } from '@nuxt/ui'
 import { useOrganizationStore } from '../../stores/organizationStore'
 import type { InvitationSchema } from '../../types/organization'
 
-const props = defineProps<{
-  open: boolean
-}>()
+const open = defineModel<boolean>('open', { default: false })
 
 const emit = defineEmits<{
-  (e: 'update:open', value: boolean): void
   (e: 'invited'): void
 }>()
 
+const toast = useToast()
 const organizationStore = useOrganizationStore()
 
-const formState = reactive({
+const schema = z.object({
+  email: z.email('Please enter a valid email address'),
+  roleName: z.enum(['Owner', 'Admin', 'Member']),
+})
+
+type Schema = z.output<typeof schema>
+
+const formRef = ref()
+
+const formState = reactive<Partial<Schema>>({
   email: '',
-  roleName: 'Member' as 'Owner' | 'Admin' | 'Member',
+  roleName: 'Member',
 })
 
 const isSubmitting = ref(false)
@@ -24,20 +33,36 @@ const localError = ref<string | null>(null)
 const createdInvite = ref<InvitationSchema | null>(null)
 const copied = ref(false)
 
-async function handleInvite() {
-  if (!formState.email.trim()) return
+const isEmailValid = computed(() => {
+  if (!formState.email || !formState.email.trim()) return false
+  return schema.safeParse(formState).success
+})
+
+const hasError = computed(() => localError.value || organizationStore.error)
+
+async function handleInvite(event: FormSubmitEvent<Schema>) {
   localError.value = null
   isSubmitting.value = true
 
   try {
     const invite = await organizationStore.createInvitation({
-      email: formState.email.trim(),
-      roleName: formState.roleName,
+      email: event.data.email.trim(),
+      roleName: event.data.roleName as 'Owner' | 'Admin' | 'Member',
     })
     createdInvite.value = invite
     emit('invited')
+    toast.add({
+      title: 'Invitation Sent',
+      description: `An invitation link has been generated for ${event.data.email}`,
+      color: 'success',
+    })
   } catch (err: unknown) {
     localError.value = (err as Error).message || 'Failed to send invitation.'
+    toast.add({
+      title: 'Invitation Failed',
+      description: localError.value || '',
+      color: 'error',
+    })
   } finally {
     isSubmitting.value = false
   }
@@ -47,6 +72,11 @@ function copyMagicLink() {
   if (createdInvite.value?.inviteUrl) {
     navigator.clipboard.writeText(createdInvite.value.inviteUrl)
     copied.value = true
+    toast.add({
+      title: 'Copied',
+      description: 'Magic link copied to clipboard.',
+      color: 'success',
+    })
     setTimeout(() => {
       copied.value = false
     }, 2000)
@@ -58,16 +88,15 @@ function resetModal() {
   formState.email = ''
   formState.roleName = 'Member'
   localError.value = null
-  emit('update:open', false)
+  open.value = false
 }
 </script>
 
 <template>
   <UModal
-    :open="props.open"
+    v-model:open="open"
     title="Invite Teammate to Workspace"
     :description="`Send an email invitation link to join ${organizationStore.currentOrganization.name}`"
-    @update:open="resetModal"
   >
     <template #body>
       <!-- Success State with Magic Link Copy -->
@@ -78,19 +107,11 @@ function resetModal() {
           <UIcon name="i-lucide-check-circle" class="w-6 h-6" />
         </div>
         <div>
-          <h3 class="text-base font-bold text-gray-900 dark:text-white">
-            Invitation Issued Successfully!
-          </h3>
-          <p class="text-xs text-gray-500">
-            An invitation email link has been sent to {{ createdInvite.email }}
-          </p>
+          <h3 class="text-base font-bold">Invitation Issued Successfully!</h3>
+          <p class="text-xs">An invitation email link has been sent to {{ createdInvite.email }}</p>
         </div>
 
-        <div
-          v-if="createdInvite.inviteUrl"
-          class="space-y-2 text-left bg-gray-50 dark:bg-gray-900 p-3 rounded-lg border border-gray-200 dark:border-gray-800"
-        >
-          <span class="text-xs font-semibold text-gray-500 uppercase">Magic Link URL</span>
+        <div v-if="createdInvite.inviteUrl" class="space-y-2 text-left">
           <div class="flex items-center gap-2">
             <UInput
               :model-value="createdInvite.inviteUrl"
@@ -100,7 +121,6 @@ function resetModal() {
             <UButton
               color="neutral"
               variant="outline"
-              size="xs"
               :icon="copied ? 'i-lucide-check' : 'i-lucide-copy'"
               @click="copyMagicLink"
             >
@@ -111,17 +131,29 @@ function resetModal() {
       </div>
 
       <!-- Invite Form -->
-      <UForm v-else :state="formState" class="space-y-4 py-2" @submit="handleInvite">
+      <UForm
+        v-else
+        ref="formRef"
+        :schema="schema"
+        :state="formState"
+        class="space-y-4"
+        @submit="handleInvite"
+      >
         <UAlert
-          v-if="localError || organizationStore.error"
+          v-if="hasError"
           color="error"
           variant="soft"
           icon="i-lucide-alert-circle"
-          :title="localError || organizationStore.error || ''"
+          :title="hasError || ''"
           class="mb-4"
         />
 
-        <UFormField label="Teammate Email Address" required help="e.g. colleague@example.com">
+        <UFormField
+          label="Teammate Email Address"
+          name="email"
+          required
+          help="e.g. colleague@example.com"
+        >
           <UInput
             v-model="formState.email"
             type="email"
@@ -132,7 +164,7 @@ function resetModal() {
           />
         </UFormField>
 
-        <UFormField label="Assigned Workspace Role">
+        <UFormField label="Assigned Workspace Role" name="roleName">
           <USelect
             v-model="formState.roleName"
             :items="[
@@ -148,18 +180,19 @@ function resetModal() {
     </template>
 
     <template #footer>
-      <div v-if="createdInvite" class="flex justify-end">
+      <div v-if="createdInvite" class="flex justify-end w-full">
         <UButton color="primary" @click="resetModal"> Done </UButton>
       </div>
-      <div v-else class="flex justify-end gap-2">
+      <div v-else class="flex justify-end gap-2 w-full">
         <UButton color="neutral" variant="outline" :disabled="isSubmitting" @click="resetModal">
           Cancel
         </UButton>
         <UButton
-          color="primary"
+          :color="isEmailValid ? 'primary' : 'neutral'"
+          :variant="isEmailValid ? 'solid' : 'ghost'"
+          :disabled="!isEmailValid"
           :loading="isSubmitting"
-          :disabled="!formState.email.trim()"
-          @click="handleInvite"
+          @click="formRef?.submit()"
         >
           Send Invitation Link
         </UButton>
