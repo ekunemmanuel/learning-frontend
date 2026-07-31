@@ -11,6 +11,7 @@ const toast = useToast()
 const route = useRoute()
 
 const open = ref(false)
+const isNotificationsOpen = ref(false)
 
 const links = [
   [
@@ -183,6 +184,6 @@ if (cookie.value !== 'accepted') {
 
     <RouterView />
 
-    <NotificationsSlideover />
+    <NotificationsSlideover v-model:open="isNotificationsOpen" />
   </UDashboardGroup>
 </template>

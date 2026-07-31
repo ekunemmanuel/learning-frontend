@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-const props = defineProps<{
-  open: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    open?: boolean
+  }>(),
+  {
+    open: false,
+  }
+)
 
 const emit = defineEmits<{
   (e: 'update:open', value: boolean): void
