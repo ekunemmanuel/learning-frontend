@@ -10,12 +10,18 @@ const authStore = useAuthStore()
     <div class="p-5 border border-gray-200 dark:border-gray-800 rounded-xl space-y-3">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-primary-100 dark:bg-primary-950 text-primary-600 dark:text-primary-400 flex items-center justify-center">
+          <div
+            class="w-10 h-10 rounded-lg bg-primary-100 dark:bg-primary-950 text-primary-600 dark:text-primary-400 flex items-center justify-center"
+          >
             <UIcon name="i-lucide-shield-check" class="w-5 h-5" />
           </div>
           <div>
-            <h3 class="text-sm font-bold text-gray-900 dark:text-white">Two-Factor Authentication (2FA)</h3>
-            <p class="text-xs text-gray-500">Add an extra layer of security to your account using TOTP apps</p>
+            <h3 class="text-sm font-bold text-gray-900 dark:text-white">
+              Two-Factor Authentication (2FA)
+            </h3>
+            <p class="text-xs text-gray-500">
+              Add an extra layer of security to your account using TOTP apps
+            </p>
           </div>
         </div>
 

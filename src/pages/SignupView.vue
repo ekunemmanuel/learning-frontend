@@ -9,7 +9,9 @@ const route = useRoute()
 const authStore = useAuthStore()
 
 const pendingInviteOrg = ref(sessionStorage.getItem('pending_invite_org') || '')
-const pendingInviteEmail = ref(sessionStorage.getItem('pending_invite_email') || (route.query.email as string) || '')
+const pendingInviteEmail = ref(
+  sessionStorage.getItem('pending_invite_email') || (route.query.email as string) || '',
+)
 
 // String refs for USelectMenu value-key bindings
 const selectedCountryCode = ref<string>('NG')
@@ -97,7 +99,9 @@ async function handleSignup() {
     <UCard class="w-full max-w-lg shadow-xl border border-gray-200 dark:border-gray-800">
       <template #header>
         <div class="text-center space-y-2">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-600 dark:text-primary-400 mb-1">
+          <div
+            class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-600 dark:text-primary-400 mb-1"
+          >
             <UIcon name="i-lucide-user-plus" class="w-6 h-6" />
           </div>
           <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
@@ -115,10 +119,15 @@ async function handleSignup() {
         class="mb-4 p-3.5 bg-info-50 dark:bg-info-950/40 border border-info-200 dark:border-info-900 rounded-xl text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3"
       >
         <div class="flex items-center gap-2.5">
-          <UIcon name="i-lucide-mail-open" class="w-5 h-5 text-info-600 dark:text-info-400 shrink-0" />
+          <UIcon
+            name="i-lucide-mail-open"
+            class="w-5 h-5 text-info-600 dark:text-info-400 shrink-0"
+          />
           <div>
             <p class="font-bold text-gray-900 dark:text-white">Workspace Invitation Received</p>
-            <p class="text-gray-500">Create your account to join {{ pendingInviteOrg || 'the organization' }}.</p>
+            <p class="text-gray-500">
+              Create your account to join {{ pendingInviteOrg || 'the organization' }}.
+            </p>
           </div>
         </div>
         <UButton

@@ -35,11 +35,7 @@ function handleConfirm() {
         <UButton color="neutral" variant="outline" @click="emit('update:open', false)">
           Cancel
         </UButton>
-        <UButton
-          color="error"
-          :loading="isDeleting"
-          @click="handleConfirm"
-        >
+        <UButton color="error" :loading="isDeleting" @click="handleConfirm">
           Delete Permanently
         </UButton>
       </div>

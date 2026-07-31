@@ -72,18 +72,31 @@ function resetModal() {
     <template #body>
       <!-- Success State with Magic Link Copy -->
       <div v-if="createdInvite" class="space-y-4 py-2 text-center">
-        <div class="w-12 h-12 rounded-full bg-success-100 dark:bg-success-950 text-success-600 dark:text-success-400 flex items-center justify-center mx-auto">
+        <div
+          class="w-12 h-12 rounded-full bg-success-100 dark:bg-success-950 text-success-600 dark:text-success-400 flex items-center justify-center mx-auto"
+        >
           <UIcon name="i-lucide-check-circle" class="w-6 h-6" />
         </div>
         <div>
-          <h3 class="text-base font-bold text-gray-900 dark:text-white">Invitation Issued Successfully!</h3>
-          <p class="text-xs text-gray-500">An invitation email link has been sent to {{ createdInvite.email }}</p>
+          <h3 class="text-base font-bold text-gray-900 dark:text-white">
+            Invitation Issued Successfully!
+          </h3>
+          <p class="text-xs text-gray-500">
+            An invitation email link has been sent to {{ createdInvite.email }}
+          </p>
         </div>
 
-        <div v-if="createdInvite.inviteUrl" class="space-y-2 text-left bg-gray-50 dark:bg-gray-900 p-3 rounded-lg border border-gray-200 dark:border-gray-800">
+        <div
+          v-if="createdInvite.inviteUrl"
+          class="space-y-2 text-left bg-gray-50 dark:bg-gray-900 p-3 rounded-lg border border-gray-200 dark:border-gray-800"
+        >
           <span class="text-xs font-semibold text-gray-500 uppercase">Magic Link URL</span>
           <div class="flex items-center gap-2">
-            <UInput :model-value="createdInvite.inviteUrl" readonly class="w-full text-xs font-mono" />
+            <UInput
+              :model-value="createdInvite.inviteUrl"
+              readonly
+              class="w-full text-xs font-mono"
+            />
             <UButton
               color="neutral"
               variant="outline"
@@ -136,9 +149,7 @@ function resetModal() {
 
     <template #footer>
       <div v-if="createdInvite" class="flex justify-end">
-        <UButton color="primary" @click="resetModal">
-          Done
-        </UButton>
+        <UButton color="primary" @click="resetModal"> Done </UButton>
       </div>
       <div v-else class="flex justify-end gap-2">
         <UButton color="neutral" variant="outline" :disabled="isSubmitting" @click="resetModal">

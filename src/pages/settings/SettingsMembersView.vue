@@ -28,7 +28,7 @@ watch(
         organizationStore.fetchInvitations()
       }
     }
-  }
+  },
 )
 
 async function handleRoleChange(member: MemberSchema, newRole: 'Owner' | 'Admin' | 'Member') {
@@ -72,8 +72,12 @@ function copyInviteLink(id: string, url?: string) {
 <template>
   <div class="space-y-6">
     <!-- Personal Workspace Info Banner -->
-    <div v-if="organizationStore.isPersonalWorkspace" class="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 text-xs text-gray-500">
-      ℹ️ Personal workspaces do not support multi-user team memberships. To invite colleagues and manage roles, create or switch to an Organization workspace using the top-left sidebar menu.
+    <div
+      v-if="organizationStore.isPersonalWorkspace"
+      class="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 text-xs text-gray-500"
+    >
+      ℹ️ Personal workspaces do not support multi-user team memberships. To invite colleagues and
+      manage roles, create or switch to an Organization workspace using the top-left sidebar menu.
     </div>
 
     <template v-else>
@@ -90,7 +94,9 @@ function copyInviteLink(id: string, url?: string) {
       <div class="flex items-center justify-between">
         <div>
           <h3 class="text-sm font-bold text-gray-900 dark:text-white">Active Team Members</h3>
-          <p class="text-xs text-gray-500">People with active access to {{ organizationStore.currentOrganization.name }}</p>
+          <p class="text-xs text-gray-500">
+            People with active access to {{ organizationStore.currentOrganization.name }}
+          </p>
         </div>
 
         <UButton
@@ -108,22 +114,33 @@ function copyInviteLink(id: string, url?: string) {
       <!-- Members Table -->
       <div class="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
         <table class="w-full text-left text-xs">
-          <thead class="bg-gray-50 dark:bg-gray-900 text-gray-500 font-semibold border-b border-gray-200 dark:border-gray-800">
+          <thead
+            class="bg-gray-50 dark:bg-gray-900 text-gray-500 font-semibold border-b border-gray-200 dark:border-gray-800"
+          >
             <tr>
               <th class="py-3 px-4">Member Name & Email</th>
               <th class="py-3 px-4">Role</th>
               <th class="py-3 px-4">Status</th>
               <th class="py-3 px-4">Joined Date</th>
-              <th v-if="organizationStore.isCurrentOrgAdmin" class="py-3 px-4 text-right">Actions</th>
+              <th v-if="organizationStore.isCurrentOrgAdmin" class="py-3 px-4 text-right">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
             <tr v-if="organizationStore.members.length === 0">
-              <td :colspan="organizationStore.isCurrentOrgAdmin ? 5 : 4" class="text-center py-6 text-gray-400">
+              <td
+                :colspan="organizationStore.isCurrentOrgAdmin ? 5 : 4"
+                class="text-center py-6 text-gray-400"
+              >
                 No members found in this organization.
               </td>
             </tr>
-            <tr v-for="m in organizationStore.members" :key="m.id" class="hover:bg-gray-50/50 dark:hover:bg-gray-900/50">
+            <tr
+              v-for="m in organizationStore.members"
+              :key="m.id"
+              class="hover:bg-gray-50/50 dark:hover:bg-gray-900/50"
+            >
               <td class="py-3 px-4">
                 <div class="font-bold text-gray-900 dark:text-white">{{ m.name }}</div>
                 <div class="text-[10px] text-gray-400">{{ m.email }}</div>
@@ -164,15 +181,24 @@ function copyInviteLink(id: string, url?: string) {
       </div>
 
       <!-- Pending Invitations Section -->
-      <div v-if="organizationStore.isCurrentOrgAdmin" class="pt-6 border-t border-gray-200 dark:border-gray-800 space-y-3">
+      <div
+        v-if="organizationStore.isCurrentOrgAdmin"
+        class="pt-6 border-t border-gray-200 dark:border-gray-800 space-y-3"
+      >
         <div>
           <h3 class="text-sm font-bold text-gray-900 dark:text-white">Pending Invitations</h3>
-          <p class="text-xs text-gray-500">Invitations sent to teammates that have not been claimed yet</p>
+          <p class="text-xs text-gray-500">
+            Invitations sent to teammates that have not been claimed yet
+          </p>
         </div>
 
-        <div class="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
+        <div
+          class="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm"
+        >
           <table class="w-full text-left text-xs">
-            <thead class="bg-gray-50 dark:bg-gray-900 text-gray-500 font-semibold border-b border-gray-200 dark:border-gray-800">
+            <thead
+              class="bg-gray-50 dark:bg-gray-900 text-gray-500 font-semibold border-b border-gray-200 dark:border-gray-800"
+            >
               <tr>
                 <th class="py-3 px-4">Recipient Email</th>
                 <th class="py-3 px-4">Assigned Role</th>
@@ -182,11 +208,13 @@ function copyInviteLink(id: string, url?: string) {
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
               <tr v-if="organizationStore.invitations.length === 0">
-                <td colspan="4" class="text-center py-6 text-gray-400">
-                  No pending invitations.
-                </td>
+                <td colspan="4" class="text-center py-6 text-gray-400">No pending invitations.</td>
               </tr>
-              <tr v-for="inv in organizationStore.invitations" :key="inv.id" class="hover:bg-gray-50/50 dark:hover:bg-gray-900/50">
+              <tr
+                v-for="inv in organizationStore.invitations"
+                :key="inv.id"
+                class="hover:bg-gray-50/50 dark:hover:bg-gray-900/50"
+              >
                 <td class="py-3 px-4 font-bold text-gray-900 dark:text-white">
                   {{ inv.email }}
                 </td>

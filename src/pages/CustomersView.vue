@@ -79,7 +79,12 @@ const filteredCustomers = computed(() => {
   })
 })
 
-function handleAddCustomer(newCustomer: { name: string; email: string; role: string; status: 'Active' | 'Pending' }) {
+function handleAddCustomer(newCustomer: {
+  name: string
+  email: string
+  role: string
+  status: 'Active' | 'Pending'
+}) {
   const newRecord: Customer = {
     id: `CUST-${100 + customers.value.length + 1}`,
     name: newCustomer.name,
@@ -110,8 +115,12 @@ function confirmDelete() {
     <!-- Top Action Bar -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h2 class="text-xl font-extrabold text-gray-900 dark:text-white">Customers & Team Members</h2>
-        <p class="text-xs text-gray-500">Manage user accounts, workspace memberships, and permissions</p>
+        <h2 class="text-xl font-extrabold text-gray-900 dark:text-white">
+          Customers & Team Members
+        </h2>
+        <p class="text-xs text-gray-500">
+          Manage user accounts, workspace memberships, and permissions
+        </p>
       </div>
 
       <UButton
@@ -148,7 +157,9 @@ function confirmDelete() {
       <!-- Customers Table -->
       <div class="overflow-x-auto mt-4 border-t border-gray-100 dark:border-gray-800 pt-4">
         <table class="w-full text-left text-xs">
-          <thead class="bg-gray-50 dark:bg-gray-900 text-gray-500 font-semibold border-b border-gray-200 dark:border-gray-800">
+          <thead
+            class="bg-gray-50 dark:bg-gray-900 text-gray-500 font-semibold border-b border-gray-200 dark:border-gray-800"
+          >
             <tr>
               <th class="py-3 px-4">Customer ID</th>
               <th class="py-3 px-4">Name & Email</th>
@@ -184,7 +195,13 @@ function confirmDelete() {
               </td>
               <td class="py-3 px-4">
                 <UBadge
-                  :color="item.status === 'Active' ? 'success' : item.status === 'Pending' ? 'warning' : 'neutral'"
+                  :color="
+                    item.status === 'Active'
+                      ? 'success'
+                      : item.status === 'Pending'
+                        ? 'warning'
+                        : 'neutral'
+                  "
                   variant="soft"
                   size="xs"
                 >
@@ -215,6 +232,10 @@ function confirmDelete() {
 
     <!-- Modals -->
     <CustomersAddModal v-model:open="isAddModalOpen" @add="handleAddCustomer" />
-    <CustomersDeleteModal v-model:open="isDeleteModalOpen" :customer-name="targetCustomer?.name" @confirm="confirmDelete" />
+    <CustomersDeleteModal
+      v-model:open="isDeleteModalOpen"
+      :customer-name="targetCustomer?.name"
+      @confirm="confirmDelete"
+    />
   </div>
 </template>

@@ -33,7 +33,9 @@ export const useOrganizationStore = defineStore('organization', () => {
   const error = ref<string | null>(null)
 
   const isCurrentOrgOwner = computed(() => currentOrganization.value.role === 'Owner')
-  const isCurrentOrgAdmin = computed(() => currentOrganization.value.role === 'Owner' || currentOrganization.value.role === 'Admin')
+  const isCurrentOrgAdmin = computed(
+    () => currentOrganization.value.role === 'Owner' || currentOrganization.value.role === 'Admin',
+  )
   const isPersonalWorkspace = computed(() => currentOrganization.value.id === PERSONAL_WORKSPACE.id)
 
   function clearError() {
@@ -83,7 +85,9 @@ export const useOrganizationStore = defineStore('organization', () => {
     }
   }
 
-  async function createOrganization(payload: CreateOrganizationPayload): Promise<OrganizationSchema> {
+  async function createOrganization(
+    payload: CreateOrganizationPayload,
+  ): Promise<OrganizationSchema> {
     isLoading.value = true
     clearError()
     try {
@@ -102,14 +106,19 @@ export const useOrganizationStore = defineStore('organization', () => {
     }
   }
 
-  async function updateOrganization(payload: UpdateOrganizationPayload): Promise<OrganizationSchema> {
+  async function updateOrganization(
+    payload: UpdateOrganizationPayload,
+  ): Promise<OrganizationSchema> {
     if (isPersonalWorkspace.value) {
       throw new Error('Personal workspace settings cannot be modified.')
     }
     isLoading.value = true
     clearError()
     try {
-      const res = await organizationService.updateOrganization(currentOrganization.value.id, payload)
+      const res = await organizationService.updateOrganization(
+        currentOrganization.value.id,
+        payload,
+      )
       if (res.data) {
         currentOrganization.value = res.data
         const index = organizations.value.findIndex((o) => o.id === res.data?.id)
@@ -161,11 +170,18 @@ export const useOrganizationStore = defineStore('organization', () => {
     }
   }
 
-  async function updateMemberRole(memberId: string, roleName: 'Owner' | 'Admin' | 'Member'): Promise<MemberSchema> {
+  async function updateMemberRole(
+    memberId: string,
+    roleName: 'Owner' | 'Admin' | 'Member',
+  ): Promise<MemberSchema> {
     isLoading.value = true
     clearError()
     try {
-      const res = await organizationService.updateMemberRole(currentOrganization.value.id, memberId, { roleName })
+      const res = await organizationService.updateMemberRole(
+        currentOrganization.value.id,
+        memberId,
+        { roleName },
+      )
       if (res.data) {
         const index = members.value.findIndex((m) => m.id === memberId)
         if (index !== -1) {
@@ -268,6 +284,7 @@ export const useOrganizationStore = defineStore('organization', () => {
         sessionStorage.removeItem('pending_invite_org')
         return true
       } catch (err: unknown) {
+        console.error('Failed to accept invitation:', err)
         sessionStorage.removeItem('pending_invite_token')
         return false
       }

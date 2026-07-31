@@ -28,7 +28,9 @@ const chartData = [
           <p class="text-xs text-gray-500">Track monthly performance analytics and growth</p>
         </div>
 
-        <div class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg self-start sm:self-auto">
+        <div
+          class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg self-start sm:self-auto"
+        >
           <UButton
             color="neutral"
             :variant="period === 'daily' ? 'solid' : 'ghost'"
@@ -70,7 +72,9 @@ const chartData = [
             :style="{ height: item.height }"
           >
             <!-- Tooltip -->
-            <div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] py-1 px-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg font-bold">
+            <div
+              class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] py-1 px-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg font-bold"
+            >
               ${{ item.value }}k
             </div>
           </div>

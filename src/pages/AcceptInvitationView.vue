@@ -103,14 +103,19 @@ async function handleSwitchAccount() {
     <UCard class="w-full max-w-md shadow-xl border border-gray-200 dark:border-gray-800">
       <template #header>
         <div class="text-center space-y-2">
-          <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-600 dark:text-primary-400 mb-1">
+          <div
+            class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-950 text-primary-600 dark:text-primary-400 mb-1"
+          >
             <UIcon name="i-lucide-mail-open" class="w-6 h-6" />
           </div>
           <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
             Workspace Invitation
           </h1>
           <p class="text-sm text-gray-500 dark:text-gray-400">
-            You've been invited to join <strong class="text-gray-900 dark:text-white">{{ orgSlug || 'an organization workspace' }}</strong>
+            You've been invited to join
+            <strong class="text-gray-900 dark:text-white">{{
+              orgSlug || 'an organization workspace'
+            }}</strong>
           </p>
         </div>
       </template>
@@ -179,10 +184,27 @@ async function handleSwitchAccount() {
       </div>
 
       <!-- Scenario A: Matching Logged In User Claim Button -->
-      <div v-else-if="authStore.isAuthenticated && !successMessage && !localError && !organizationStore.error" class="space-y-4 text-center py-2">
-        <div class="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 text-left text-xs space-y-1">
-          <p><span class="font-semibold text-gray-500">Invited Email:</span> <span class="font-bold text-gray-900 dark:text-white">{{ invitedEmail || authStore.user?.email }}</span></p>
-          <p><span class="font-semibold text-gray-500">Target Workspace:</span> <span class="font-bold text-gray-900 dark:text-white">{{ orgSlug || 'Organization' }}</span></p>
+      <div
+        v-else-if="
+          authStore.isAuthenticated && !successMessage && !localError && !organizationStore.error
+        "
+        class="space-y-4 text-center py-2"
+      >
+        <div
+          class="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 text-left text-xs space-y-1"
+        >
+          <p>
+            <span class="font-semibold text-gray-500">Invited Email:</span>
+            <span class="font-bold text-gray-900 dark:text-white">{{
+              invitedEmail || authStore.user?.email
+            }}</span>
+          </p>
+          <p>
+            <span class="font-semibold text-gray-500">Target Workspace:</span>
+            <span class="font-bold text-gray-900 dark:text-white">{{
+              orgSlug || 'Organization'
+            }}</span>
+          </p>
         </div>
 
         <div class="space-y-2">

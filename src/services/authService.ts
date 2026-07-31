@@ -13,7 +13,8 @@ import type {
   VerifyPayload,
 } from '../types/auth'
 
-const API_BASE_URL = 'http://localhost:3000/auth'
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9999'
+const API_BASE_URL = `${BASE_URL}/auth`
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
   const defaultHeaders: Record<string, string> = {

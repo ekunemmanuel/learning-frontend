@@ -10,7 +10,8 @@ import type {
   UpdateOrganizationPayload,
 } from '../types/organization'
 
-const API_BASE_URL = 'http://localhost:3000/organizations'
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9999'
+const API_BASE_URL = `${BASE_URL}/organizations`
 
 export class ApiError extends Error {
   errors?: unknown[]
@@ -38,7 +39,10 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   const json = await response.json().catch(() => ({}))
 
   if (!response.ok || (json && json.success === false)) {
-    throw new ApiError(json.message || `Request failed with status ${response.status}`, json.errors || [])
+    throw new ApiError(
+      json.message || `Request failed with status ${response.status}`,
+      json.errors || [],
+    )
   }
 
   return json
@@ -64,7 +68,10 @@ export const organizationService = {
     })
   },
 
-  updateOrganization(idOrSlug: string, payload: UpdateOrganizationPayload): Promise<ApiResponse<OrganizationSchema>> {
+  updateOrganization(
+    idOrSlug: string,
+    payload: UpdateOrganizationPayload,
+  ): Promise<ApiResponse<OrganizationSchema>> {
     return request<OrganizationSchema>(`/${encodeURIComponent(idOrSlug)}`, {
       method: 'PATCH',
       body: JSON.stringify(payload),
@@ -83,20 +90,33 @@ export const organizationService = {
     })
   },
 
-  updateMemberRole(idOrSlug: string, memberId: string, payload: UpdateMemberRolePayload): Promise<ApiResponse<MemberSchema>> {
-    return request<MemberSchema>(`/${encodeURIComponent(idOrSlug)}/members/${encodeURIComponent(memberId)}`, {
-      method: 'PATCH',
-      body: JSON.stringify(payload),
-    })
+  updateMemberRole(
+    idOrSlug: string,
+    memberId: string,
+    payload: UpdateMemberRolePayload,
+  ): Promise<ApiResponse<MemberSchema>> {
+    return request<MemberSchema>(
+      `/${encodeURIComponent(idOrSlug)}/members/${encodeURIComponent(memberId)}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(payload),
+      },
+    )
   },
 
   removeMember(idOrSlug: string, memberId: string): Promise<ApiResponse<null>> {
-    return request<null>(`/${encodeURIComponent(idOrSlug)}/members/${encodeURIComponent(memberId)}`, {
-      method: 'DELETE',
-    })
+    return request<null>(
+      `/${encodeURIComponent(idOrSlug)}/members/${encodeURIComponent(memberId)}`,
+      {
+        method: 'DELETE',
+      },
+    )
   },
 
-  createInvitation(idOrSlug: string, payload: CreateInvitationPayload): Promise<ApiResponse<InvitationSchema>> {
+  createInvitation(
+    idOrSlug: string,
+    payload: CreateInvitationPayload,
+  ): Promise<ApiResponse<InvitationSchema>> {
     return request<InvitationSchema>(`/${encodeURIComponent(idOrSlug)}/invitations`, {
       method: 'POST',
       body: JSON.stringify(payload),
@@ -110,9 +130,12 @@ export const organizationService = {
   },
 
   cancelInvitation(idOrSlug: string, invitationId: string): Promise<ApiResponse<null>> {
-    return request<null>(`/${encodeURIComponent(idOrSlug)}/invitations/${encodeURIComponent(invitationId)}`, {
-      method: 'DELETE',
-    })
+    return request<null>(
+      `/${encodeURIComponent(idOrSlug)}/invitations/${encodeURIComponent(invitationId)}`,
+      {
+        method: 'DELETE',
+      },
+    )
   },
 
   acceptInvitation(payload: AcceptInvitationPayload): Promise<ApiResponse<null>> {

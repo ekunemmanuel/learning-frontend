@@ -7,7 +7,10 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:open', value: boolean): void
-  (e: 'add', customer: { name: string; email: string; role: string; status: 'Active' | 'Pending' }): void
+  (
+    e: 'add',
+    customer: { name: string; email: string; role: string; status: 'Active' | 'Pending' },
+  ): void
 }>()
 
 const formState = reactive({
@@ -79,11 +82,7 @@ function handleSubmit() {
           </UFormField>
 
           <UFormField label="Initial Status">
-            <USelect
-              v-model="formState.status"
-              :items="['Active', 'Pending']"
-              class="w-full"
-            />
+            <USelect v-model="formState.status" :items="['Active', 'Pending']" class="w-full" />
           </UFormField>
         </div>
       </UForm>

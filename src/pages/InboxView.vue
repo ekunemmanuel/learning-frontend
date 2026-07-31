@@ -58,9 +58,13 @@ function selectMail(item: MailItem) {
 </script>
 
 <template>
-  <div class="h-[calc(100vh-9rem)] flex flex-col md:flex-row border border-gray-200 dark:border-gray-800 rounded-2xl bg-white dark:bg-gray-900 overflow-hidden shadow-sm">
+  <div
+    class="h-[calc(100vh-9rem)] flex flex-col md:flex-row border border-gray-200 dark:border-gray-800 rounded-2xl bg-white dark:bg-gray-900 overflow-hidden shadow-sm"
+  >
     <!-- Message List Pane -->
-    <div class="w-full md:w-80 lg:w-96 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-800 flex flex-col shrink-0">
+    <div
+      class="w-full md:w-80 lg:w-96 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-800 flex flex-col shrink-0"
+    >
       <div class="p-4 border-b border-gray-100 dark:border-gray-800">
         <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Inbox</h2>
         <UInput placeholder="Search messages..." icon="i-lucide-search" size="sm" class="w-full" />
@@ -71,7 +75,11 @@ function selectMail(item: MailItem) {
           v-for="item in mails"
           :key="item.id"
           class="p-4 cursor-pointer transition-colors"
-          :class="activeMail.id === item.id ? 'bg-primary-50/60 dark:bg-primary-950/30' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'"
+          :class="
+            activeMail.id === item.id
+              ? 'bg-primary-50/60 dark:bg-primary-950/30'
+              : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
+          "
           @click="selectMail(item)"
         >
           <div class="flex items-center justify-between gap-2 mb-1">
@@ -108,7 +116,9 @@ function selectMail(item: MailItem) {
         </div>
       </div>
 
-      <div class="flex-1 whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-sans">
+      <div
+        class="flex-1 whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-sans"
+      >
         {{ activeMail.body }}
       </div>
 

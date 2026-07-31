@@ -15,7 +15,7 @@ watch(
     formState.name = newOrg.name
     formState.billingPlan = newOrg.billingPlan
   },
-  { immediate: true }
+  { immediate: true },
 )
 
 const isSubmitting = ref(false)
@@ -79,17 +79,34 @@ async function handleDeleteWorkspace() {
       :title="localError || organizationStore.error || ''"
     />
 
-    <div v-if="organizationStore.isPersonalWorkspace" class="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 text-xs text-gray-500">
-      ℹ️ You are currently viewing your <strong>Personal Workspace</strong>. Personal workspaces are default individual accounts and cannot be renamed or deleted. To manage a multi-tenant organization, switch or create a workspace using the dropdown in the sidebar.
+    <div
+      v-if="organizationStore.isPersonalWorkspace"
+      class="p-4 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 text-xs text-gray-500"
+    >
+      ℹ️ You are currently viewing your <strong>Personal Workspace</strong>. Personal workspaces are
+      default individual accounts and cannot be renamed or deleted. To manage a multi-tenant
+      organization, switch or create a workspace using the dropdown in the sidebar.
     </div>
 
     <UForm v-else :state="formState" class="space-y-4" @submit="handleSave">
-      <UFormField label="Organization Workspace Name" required help="The public display name of your company or team">
-        <UInput v-model="formState.name" class="w-full" :disabled="!organizationStore.isCurrentOrgAdmin" />
+      <UFormField
+        label="Organization Workspace Name"
+        required
+        help="The public display name of your company or team"
+      >
+        <UInput
+          v-model="formState.name"
+          class="w-full"
+          :disabled="!organizationStore.isCurrentOrgAdmin"
+        />
       </UFormField>
 
       <UFormField label="Workspace URL Slug" help="Unique URL identifier for your workspace">
-        <UInput :model-value="organizationStore.currentOrganization.slug" readonly class="w-full bg-gray-100 dark:bg-gray-900 font-mono text-xs" />
+        <UInput
+          :model-value="organizationStore.currentOrganization.slug"
+          readonly
+          class="w-full bg-gray-100 dark:bg-gray-900 font-mono text-xs"
+        />
       </UFormField>
 
       <UFormField label="Billing Subscription Plan">
@@ -124,11 +141,14 @@ async function handleDeleteWorkspace() {
         <span>Danger Zone</span>
       </div>
 
-      <div class="p-4 border border-error-200 dark:border-error-900 bg-error-50/30 dark:bg-error-950/20 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div
+        class="p-4 border border-error-200 dark:border-error-900 bg-error-50/30 dark:bg-error-950/20 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+      >
         <div>
           <p class="text-sm font-bold text-gray-900 dark:text-white">Delete Workspace</p>
           <p class="text-xs text-gray-500">
-            Soft-delete this organization. Note: All active team members must be removed before deleting.
+            Soft-delete this organization. Note: All active team members must be removed before
+            deleting.
           </p>
         </div>
 

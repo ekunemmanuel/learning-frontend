@@ -72,7 +72,9 @@ const transactions = ref<Transaction[]>([
 
     <div class="overflow-x-auto">
       <table class="w-full text-left text-xs">
-        <thead class="bg-gray-50 dark:bg-gray-900 text-gray-500 font-semibold border-b border-gray-200 dark:border-gray-800">
+        <thead
+          class="bg-gray-50 dark:bg-gray-900 text-gray-500 font-semibold border-b border-gray-200 dark:border-gray-800"
+        >
           <tr>
             <th class="py-3 px-4">Transaction ID</th>
             <th class="py-3 px-4">Customer</th>
@@ -82,7 +84,11 @@ const transactions = ref<Transaction[]>([
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-          <tr v-for="item in transactions" :key="item.id" class="hover:bg-gray-50/50 dark:hover:bg-gray-900/50 transition-colors">
+          <tr
+            v-for="item in transactions"
+            :key="item.id"
+            class="hover:bg-gray-50/50 dark:hover:bg-gray-900/50 transition-colors"
+          >
             <td class="py-3 px-4 font-mono font-bold text-gray-900 dark:text-white">
               {{ item.id }}
             </td>
@@ -95,7 +101,13 @@ const transactions = ref<Transaction[]>([
             </td>
             <td class="py-3 px-4">
               <UBadge
-                :color="item.status === 'Completed' ? 'success' : item.status === 'Pending' ? 'warning' : 'error'"
+                :color="
+                  item.status === 'Completed'
+                    ? 'success'
+                    : item.status === 'Pending'
+                      ? 'warning'
+                      : 'error'
+                "
                 variant="soft"
                 size="xs"
               >

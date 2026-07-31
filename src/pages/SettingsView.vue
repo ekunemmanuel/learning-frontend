@@ -31,11 +31,17 @@ const tabs = computed(() => [
     <!-- Header Title -->
     <div>
       <h2 class="text-xl font-extrabold text-gray-900 dark:text-white">Workspace Settings</h2>
-      <p class="text-xs text-gray-500">Manage your organization preferences, team members, and security</p>
+      <p class="text-xs text-gray-500">
+        Manage your organization preferences, team members, and security
+      </p>
     </div>
 
     <!-- Sub Navigation Tabs -->
-    <UNavigationMenu :items="tabs" orientation="horizontal" class="border-b border-gray-200 dark:border-gray-800 pb-2" />
+    <UNavigationMenu
+      :items="tabs"
+      orientation="horizontal"
+      class="border-b border-gray-200 dark:border-gray-800 pb-2"
+    />
 
     <!-- Sub Page View -->
     <UCard class="border border-gray-200 dark:border-gray-800 shadow-sm">

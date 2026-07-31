@@ -58,7 +58,9 @@ const stats: StatCard[] = [
     >
       <div class="space-y-3">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">{{ stat.title }}</span>
+          <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">{{
+            stat.title
+          }}</span>
           <div class="w-8 h-8 rounded-lg flex items-center justify-center" :class="stat.iconColor">
             <UIcon :name="stat.icon" class="w-4 h-4" />
           </div>
@@ -73,9 +75,20 @@ const stats: StatCard[] = [
         <div class="flex items-center gap-1.5 text-xs">
           <span
             class="font-bold flex items-center gap-0.5"
-            :class="stat.trendType === 'positive' ? 'text-success-600 dark:text-success-400' : 'text-error-600 dark:text-error-400'"
+            :class="
+              stat.trendType === 'positive'
+                ? 'text-success-600 dark:text-success-400'
+                : 'text-error-600 dark:text-error-400'
+            "
           >
-            <UIcon :name="stat.trendType === 'positive' ? 'i-lucide-arrow-up-right' : 'i-lucide-arrow-down-right'" class="w-3.5 h-3.5" />
+            <UIcon
+              :name="
+                stat.trendType === 'positive'
+                  ? 'i-lucide-arrow-up-right'
+                  : 'i-lucide-arrow-down-right'
+              "
+              class="w-3.5 h-3.5"
+            />
             {{ stat.trend }}
           </span>
           <span class="text-gray-500 dark:text-gray-400">{{ stat.period }}</span>

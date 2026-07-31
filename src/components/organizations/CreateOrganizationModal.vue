@@ -73,7 +73,11 @@ async function handleCreate() {
           class="mb-4"
         />
 
-        <UFormField label="Organization Workspace Name" required help="e.g. Acme Corp, Starlight SaaS">
+        <UFormField
+          label="Organization Workspace Name"
+          required
+          help="e.g. Acme Corp, Starlight SaaS"
+        >
           <UInput
             v-model="formState.name"
             placeholder="Starlight SaaS"
@@ -85,8 +89,13 @@ async function handleCreate() {
 
         <div>
           <span class="text-xs font-semibold text-gray-500">URL Slug Preview</span>
-          <div class="mt-1 px-3 py-2 bg-gray-100 dark:bg-gray-900 rounded font-mono text-xs text-gray-600 dark:text-gray-300">
-            https://hub.example.com/org/<span class="text-primary-600 dark:text-primary-400 font-bold">{{ slugPreview }}</span>
+          <div
+            class="mt-1 px-3 py-2 bg-gray-100 dark:bg-gray-900 rounded font-mono text-xs text-gray-600 dark:text-gray-300"
+          >
+            https://hub.example.com/org/<span
+              class="text-primary-600 dark:text-primary-400 font-bold"
+              >{{ slugPreview }}</span
+            >
           </div>
         </div>
 
@@ -108,7 +117,12 @@ async function handleCreate() {
 
     <template #footer>
       <div class="flex justify-end gap-2">
-        <UButton color="neutral" variant="outline" :disabled="isSubmitting" @click="emit('update:open', false)">
+        <UButton
+          color="neutral"
+          variant="outline"
+          :disabled="isSubmitting"
+          @click="emit('update:open', false)"
+        >
           Cancel
         </UButton>
         <UButton

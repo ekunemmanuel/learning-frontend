@@ -89,11 +89,15 @@ const currentPageTitle = computed(() => {
 <template>
   <div class="flex h-screen bg-gray-50 dark:bg-gray-950 overflow-hidden font-sans">
     <!-- Desktop Sidebar -->
-    <aside class="hidden md:flex md:w-64 flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0">
+    <aside
+      class="hidden md:flex md:w-64 flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0"
+    >
       <!-- Sidebar Header -->
       <div class="p-4 border-b border-gray-100 dark:border-gray-800">
         <div class="flex items-center gap-2 mb-3 px-1">
-          <div class="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center text-white font-black text-lg shadow-sm">
+          <div
+            class="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center text-white font-black text-lg shadow-sm"
+          >
             L
           </div>
           <span class="font-extrabold text-lg text-gray-900 dark:text-white tracking-tight">
@@ -131,7 +135,9 @@ const currentPageTitle = computed(() => {
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
       <!-- Navbar Header Bar -->
-      <header class="h-16 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex items-center justify-between px-4 sm:px-6 shrink-0 gap-4">
+      <header
+        class="h-16 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex items-center justify-between px-4 sm:px-6 shrink-0 gap-4"
+      >
         <div class="flex items-center gap-3 min-w-0">
           <UButton
             color="neutral"
@@ -194,7 +200,11 @@ const currentPageTitle = computed(() => {
     <NotificationsSlideover v-model:open="isNotificationsOpen" />
 
     <!-- Global Search Modal -->
-    <UModal v-model:open="isSearchModalOpen" title="Quick Search" description="Search pages, customers, settings, and documentation">
+    <UModal
+      v-model:open="isSearchModalOpen"
+      title="Quick Search"
+      description="Search pages, customers, settings, and documentation"
+    >
       <template #body>
         <div class="space-y-4 py-2">
           <UInput
