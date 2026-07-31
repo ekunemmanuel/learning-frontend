@@ -19,10 +19,6 @@ const selectedTeam = computed(() => {
   const current = organizationStore.currentOrganization
   return {
     label: current.name,
-    avatar: {
-      src: undefined,
-      alt: current.name,
-    },
     icon: current.id === PERSONAL_WORKSPACE.id ? 'i-lucide-user' : 'i-lucide-building-2',
   }
 })
@@ -71,10 +67,11 @@ const items = computed<DropdownMenuItem[][]>(() => {
         variant="ghost"
         block
         :square="collapsed"
-        class="data-[state=open]:bg-elevated"
+        class="data-[state=open]:bg-elevated min-w-0"
         :class="[!collapsed && 'py-2']"
         :ui="{
-          trailingIcon: 'text-dimmed',
+          label: 'truncate min-w-0',
+          trailingIcon: 'text-dimmed shrink-0',
         }"
       />
     </UDropdownMenu>

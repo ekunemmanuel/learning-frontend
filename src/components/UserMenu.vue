@@ -203,10 +203,11 @@ const items = computed<DropdownMenuItem[][]>(() => [
       variant="ghost"
       block
       :square="collapsed"
-      class="data-[state=open]:bg-elevated"
+      class="data-[state=open]:bg-elevated min-w-0"
       :class="[!collapsed && 'py-2']"
       :ui="{
-        trailingIcon: 'text-dimmed',
+        label: 'truncate min-w-0',
+        trailingIcon: 'text-dimmed shrink-0',
       }"
     />
 
