@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import type { DropdownMenuItem } from '@nuxt/ui'
 import { useOrganizationStore, PERSONAL_WORKSPACE } from '../stores/organizationStore'
 import CreateOrganizationModal from './organizations/CreateOrganizationModal.vue'
 
@@ -14,14 +15,26 @@ onMounted(() => {
   organizationStore.fetchUserOrganizations()
 })
 
-const dropdownItems = computed(() => {
+const selectedTeam = computed(() => {
+  const current = organizationStore.currentOrganization
+  return {
+    label: current.name,
+    avatar: {
+      src: undefined,
+      alt: current.name,
+    },
+    icon: current.id === PERSONAL_WORKSPACE.id ? 'i-lucide-user' : 'i-lucide-building-2',
+  }
+})
+
+const items = computed<DropdownMenuItem[][]>(() => {
   const orgItems = organizationStore.organizations.map((org) => ({
     label: org.name,
     icon: org.id === PERSONAL_WORKSPACE.id ? 'i-lucide-user' : 'i-lucide-building-2',
     badge: org.role,
     type: 'checkbox' as const,
     checked: org.id === organizationStore.currentOrganization.id,
-    onSelect: () => {
+    onSelect() {
       organizationStore.setCurrentOrganization(org)
     },
   }))
@@ -30,9 +43,9 @@ const dropdownItems = computed(() => {
     orgItems,
     [
       {
-        label: 'Create Workspace',
-        icon: 'i-lucide-plus',
-        onSelect: () => {
+        label: 'Create workspace',
+        icon: 'i-lucide-circle-plus',
+        onSelect() {
           isCreateModalOpen.value = true
         },
       },
@@ -43,29 +56,27 @@ const dropdownItems = computed(() => {
 
 <template>
   <div>
-    <UDropdownMenu :items="dropdownItems" :content="{ align: 'start' }" :ui="{ content: 'w-64' }">
-      <UButton color="neutral" variant="soft" class="w-full justify-between">
-        <div class="flex items-center gap-2.5 min-w-0">
-          <div
-            class="w-8 h-8 rounded-lg bg-primary-100 dark:bg-primary-950 text-primary-600 dark:text-primary-400 flex items-center justify-center shrink-0"
-          >
-            <UIcon
-              :name="
-                organizationStore.currentOrganization.id === PERSONAL_WORKSPACE.id
-                  ? 'i-lucide-user'
-                  : 'i-lucide-building-2'
-              "
-              class="w-4 h-4"
-            />
-          </div>
-          <div v-if="!collapsed" class="text-left truncate">
-            <p class="text-xs font-bold text-gray-900 dark:text-white truncate leading-tight">
-              {{ organizationStore.currentOrganization.name }}
-            </p>
-          </div>
-        </div>
-        <UIcon v-if="!collapsed" name="i-lucide-chevrons-up-down" class="w-4 h-4 shrink-0" />
-      </UButton>
+    <UDropdownMenu
+      :items="items"
+      :content="{ align: 'center', collisionPadding: 12 }"
+      :ui="{ content: collapsed ? 'w-48' : 'w-(--reka-dropdown-menu-trigger-width)' }"
+    >
+      <UButton
+        v-bind="{
+          ...selectedTeam,
+          label: collapsed ? undefined : selectedTeam?.label,
+          trailingIcon: collapsed ? undefined : 'i-lucide-chevrons-up-down',
+        }"
+        color="neutral"
+        variant="ghost"
+        block
+        :square="collapsed"
+        class="data-[state=open]:bg-elevated"
+        :class="[!collapsed && 'py-2']"
+        :ui="{
+          trailingIcon: 'text-dimmed',
+        }"
+      />
     </UDropdownMenu>
 
     <!-- Create Workspace Modal -->
