@@ -10,7 +10,7 @@ const _useDashboard = () => {
     () => route.fullPath,
     () => {
       isNotificationsSlideoverOpen.value = false
-    }
+    },
   )
 
   return {

@@ -2,12 +2,9 @@
 import { reactive, ref, computed } from 'vue'
 import { useOrganizationStore } from '../../stores/organizationStore'
 
-const props = defineProps<{
-  open: boolean
-}>()
+const open = defineModel<boolean>('open', { default: false })
 
 const emit = defineEmits<{
-  (e: 'update:open', value: boolean): void
   (e: 'created'): void
 }>()
 
@@ -15,7 +12,7 @@ const organizationStore = useOrganizationStore()
 
 const formState = reactive({
   name: '',
-  billingPlan: 'pro',
+  billingPlan: 'free',
 })
 
 const isSubmitting = ref(false)
@@ -43,9 +40,9 @@ async function handleCreate() {
       billingPlan: formState.billingPlan,
     })
     formState.name = ''
-    formState.billingPlan = 'pro'
+    formState.billingPlan = 'free'
     emit('created')
-    emit('update:open', false)
+    open.value = false
   } catch (err: unknown) {
     localError.value = (err as Error).message || 'Failed to create workspace.'
   } finally {
@@ -56,10 +53,9 @@ async function handleCreate() {
 
 <template>
   <UModal
-    :open="props.open"
+    v-model:open="open"
     title="Create Organization Workspace"
     description="Set up a new multi-tenant workspace to collaborate with your team"
-    @update:open="emit('update:open', $event)"
   >
     <template #body>
       <UForm :state="formState" class="space-y-4 py-2" @submit="handleCreate">
@@ -87,18 +83,8 @@ async function handleCreate() {
           />
         </UFormField>
 
-        <div>
-          <span class="text-xs font-semibold text-gray-500">URL Slug Preview</span>
-          <div
-            class="mt-1 px-3 py-2 bg-gray-100 dark:bg-gray-900 rounded font-mono text-xs text-gray-600 dark:text-gray-300"
-          >
-            https://hub.example.com/org/<span
-              class="text-primary-600 dark:text-primary-400 font-bold"
-              >{{ slugPreview }}</span
-            >
-          </div>
-        </div>
-
+        <!-- Subscription Billing Plan Selection (Commented out) -->
+        <!--
         <UFormField label="Initial Subscription Billing Plan">
           <USelect
             v-model="formState.billingPlan"
@@ -112,16 +98,17 @@ async function handleCreate() {
             class="w-full"
           />
         </UFormField>
+        -->
       </UForm>
     </template>
 
     <template #footer>
-      <div class="flex justify-end gap-2">
+      <div class="flex justify-end gap-2 w-full">
         <UButton
           color="neutral"
           variant="outline"
           :disabled="isSubmitting"
-          @click="emit('update:open', false)"
+          @click="open = false"
         >
           Cancel
         </UButton>

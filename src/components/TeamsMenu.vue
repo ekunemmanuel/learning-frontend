@@ -19,6 +19,10 @@ const selectedTeam = computed(() => {
   const current = organizationStore.currentOrganization
   return {
     label: current.name,
+    avatar: {
+      src: undefined,
+      alt: current.name,
+    },
     icon: current.id === PERSONAL_WORKSPACE.id ? 'i-lucide-user' : 'i-lucide-building-2',
   }
 })
@@ -51,7 +55,7 @@ const items = computed<DropdownMenuItem[][]>(() => {
 </script>
 
 <template>
-  <div>
+  <div class="w-full">
     <UDropdownMenu
       :items="items"
       :content="{ align: 'center', collisionPadding: 12 }"
@@ -60,18 +64,17 @@ const items = computed<DropdownMenuItem[][]>(() => {
       <UButton
         v-bind="{
           ...selectedTeam,
-          label: collapsed ? undefined : selectedTeam?.label,
+          label: collapsed ? undefined : selectedTeam.label,
           trailingIcon: collapsed ? undefined : 'i-lucide-chevrons-up-down',
         }"
         color="neutral"
         variant="ghost"
         block
         :square="collapsed"
-        class="data-[state=open]:bg-elevated min-w-0"
+        class="data-[state=open]:bg-elevated"
         :class="[!collapsed && 'py-2']"
         :ui="{
-          label: 'truncate min-w-0',
-          trailingIcon: 'text-dimmed shrink-0',
+          trailingIcon: 'text-dimmed',
         }"
       />
     </UDropdownMenu>

@@ -54,14 +54,13 @@ function removeNotification(id: string) {
 </script>
 
 <template>
-  <USlideover
-    v-model:open="isNotificationsSlideoverOpen"
-    title="Notifications"
-  >
+  <USlideover v-model:open="isNotificationsSlideoverOpen" title="Notifications">
     <template #body>
       <div class="space-y-4 py-2">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Recent Activity</span>
+          <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider"
+            >Recent Activity</span
+          >
           <UButton
             color="neutral"
             variant="link"
@@ -84,15 +83,23 @@ function removeNotification(id: string) {
             v-for="item in notifications"
             :key="item.id"
             class="flex items-start gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-800 transition-colors"
-            :class="item.unread ? 'bg-primary-50/40 dark:bg-primary-950/20 border-primary-200 dark:border-primary-900' : 'bg-white dark:bg-gray-900'"
+            :class="
+              item.unread
+                ? 'bg-primary-50/40 dark:bg-primary-950/20 border-primary-200 dark:border-primary-900'
+                : 'bg-white dark:bg-gray-900'
+            "
           >
             <div
               class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5"
               :class="{
-                'bg-primary-100 text-primary-600 dark:bg-primary-950 dark:text-primary-400': item.color === 'primary',
-                'bg-success-100 text-success-600 dark:bg-success-950 dark:text-success-400': item.color === 'success',
-                'bg-warning-100 text-warning-600 dark:bg-warning-950 dark:text-warning-400': item.color === 'warning',
-                'bg-info-100 text-info-600 dark:bg-info-950 dark:text-info-400': item.color === 'info',
+                'bg-primary-100 text-primary-600 dark:bg-primary-950 dark:text-primary-400':
+                  item.color === 'primary',
+                'bg-success-100 text-success-600 dark:bg-success-950 dark:text-success-400':
+                  item.color === 'success',
+                'bg-warning-100 text-warning-600 dark:bg-warning-950 dark:text-warning-400':
+                  item.color === 'warning',
+                'bg-info-100 text-info-600 dark:bg-info-950 dark:text-info-400':
+                  item.color === 'info',
               }"
             >
               <UIcon :name="item.icon" class="w-4 h-4" />

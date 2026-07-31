@@ -33,17 +33,7 @@ const colors = [
   'pink',
   'rose',
 ]
-const neutrals = [
-  'slate',
-  'gray',
-  'zinc',
-  'neutral',
-  'stone',
-  'taupe',
-  'mauve',
-  'mist',
-  'olive',
-]
+const neutrals = ['slate', 'gray', 'zinc', 'neutral', 'stone', 'taupe', 'mauve', 'mist', 'olive']
 
 const user = computed(() => ({
   name: authStore.user?.name || 'User Account',
@@ -203,11 +193,10 @@ const items = computed<DropdownMenuItem[][]>(() => [
       variant="ghost"
       block
       :square="collapsed"
-      class="data-[state=open]:bg-elevated min-w-0"
+      class="data-[state=open]:bg-elevated"
       :class="[!collapsed && 'py-2']"
       :ui="{
-        label: 'truncate min-w-0',
-        trailingIcon: 'text-dimmed shrink-0',
+        trailingIcon: 'text-dimmed',
       }"
     />
 
