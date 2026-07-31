@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref, computed } from 'vue'
+import { z } from 'zod'
+import type { FormSubmitEvent } from '@nuxt/ui'
 import { useOrganizationStore } from '../../stores/organizationStore'
 
 const open = defineModel<boolean>('open', { default: false })
@@ -10,7 +12,16 @@ const emit = defineEmits<{
 
 const organizationStore = useOrganizationStore()
 
-const formState = reactive({
+const schema = z.object({
+  name: z.string().min(2, 'Workspace name must be at least 2 characters'),
+  billingPlan: z.string().optional(),
+})
+
+type Schema = z.output<typeof schema>
+
+const formRef = ref()
+
+const formState = reactive<Partial<Schema>>({
   name: '',
   billingPlan: 'free',
 })
@@ -19,7 +30,7 @@ const isSubmitting = ref(false)
 const localError = ref<string | null>(null)
 
 const slugPreview = computed(() => {
-  if (!formState.name.trim()) return 'workspace-name'
+  if (!formState.name || !formState.name.trim()) return 'workspace-name'
   return formState.name
     .toLowerCase()
     .trim()
@@ -28,16 +39,15 @@ const slugPreview = computed(() => {
     .replace(/^-+|-+$/g, '')
 })
 
-async function handleCreate() {
-  if (!formState.name.trim()) return
+async function handleCreate(event: FormSubmitEvent<Schema>) {
   localError.value = null
   isSubmitting.value = true
 
   try {
     await organizationStore.createOrganization({
-      name: formState.name.trim(),
+      name: event.data.name.trim(),
       slug: slugPreview.value,
-      billingPlan: formState.billingPlan,
+      billingPlan: event.data.billingPlan || 'free',
     })
     formState.name = ''
     formState.billingPlan = 'free'
@@ -58,7 +68,13 @@ async function handleCreate() {
     description="Set up a new multi-tenant workspace to collaborate with your team"
   >
     <template #body>
-      <UForm :state="formState" class="space-y-4 py-2" @submit="handleCreate">
+      <UForm
+        ref="formRef"
+        :schema="schema"
+        :state="formState"
+        class="space-y-4 py-2"
+        @submit="handleCreate"
+      >
         <!-- Error Alert -->
         <UAlert
           v-if="localError || organizationStore.error"
@@ -71,6 +87,7 @@ async function handleCreate() {
 
         <UFormField
           label="Organization Workspace Name"
+          name="name"
           required
           help="e.g. Acme Corp, Starlight SaaS"
         >
@@ -82,23 +99,6 @@ async function handleCreate() {
             autofocus
           />
         </UFormField>
-
-        <!-- Subscription Billing Plan Selection (Commented out) -->
-        <!--
-        <UFormField label="Initial Subscription Billing Plan">
-          <USelect
-            v-model="formState.billingPlan"
-            :items="[
-              { label: 'Free Plan ($0/mo)', value: 'free' },
-              { label: 'Pro Plan ($49/mo)', value: 'pro' },
-              { label: 'Enterprise Plan ($199/mo)', value: 'enterprise' },
-            ]"
-            value-key="value"
-            label-key="label"
-            class="w-full"
-          />
-        </UFormField>
-        -->
       </UForm>
     </template>
 
@@ -115,8 +115,8 @@ async function handleCreate() {
         <UButton
           color="primary"
           :loading="isSubmitting"
-          :disabled="!formState.name.trim()"
-          @click="handleCreate"
+          :disabled="!formState.name || !formState.name.trim()"
+          @click="formRef?.submit()"
         >
           Create Workspace
         </UButton>
