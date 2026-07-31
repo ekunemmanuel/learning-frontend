@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref, computed } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { z } from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { useOrganizationStore } from '../../stores/organizationStore'
@@ -29,16 +29,6 @@ const formState = reactive<Partial<Schema>>({
 const isSubmitting = ref(false)
 const localError = ref<string | null>(null)
 
-const slugPreview = computed(() => {
-  if (!formState.name || !formState.name.trim()) return 'workspace-name'
-  return formState.name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/[\s_]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-})
-
 async function handleCreate(event: FormSubmitEvent<Schema>) {
   localError.value = null
   isSubmitting.value = true
@@ -46,7 +36,6 @@ async function handleCreate(event: FormSubmitEvent<Schema>) {
   try {
     await organizationStore.createOrganization({
       name: event.data.name.trim(),
-      slug: slugPreview.value,
       billingPlan: event.data.billingPlan || 'free',
     })
     formState.name = ''
@@ -59,13 +48,16 @@ async function handleCreate(event: FormSubmitEvent<Schema>) {
     isSubmitting.value = false
   }
 }
+
+const isEmpty = computed(() => !formState.name || !formState.name.trim())
+const hasError = computed(() => localError.value || organizationStore.error)
 </script>
 
 <template>
   <UModal
     v-model:open="open"
     title="Create Organization Workspace"
-    description="Set up a new multi-tenant workspace to collaborate with your team"
+    description="Set up a new workspace to collaborate with your team"
   >
     <template #body>
       <UForm
@@ -77,11 +69,11 @@ async function handleCreate(event: FormSubmitEvent<Schema>) {
       >
         <!-- Error Alert -->
         <UAlert
-          v-if="localError || organizationStore.error"
+          v-if="hasError"
           color="error"
           variant="soft"
           icon="i-lucide-alert-circle"
-          :title="localError || organizationStore.error || ''"
+          :title="hasError"
           class="mb-4"
         />
 
@@ -99,23 +91,36 @@ async function handleCreate(event: FormSubmitEvent<Schema>) {
             autofocus
           />
         </UFormField>
+
+        <!-- Subscription Billing Plan Selection (Commented out) -->
+        <!--
+        <UFormField label="Initial Subscription Billing Plan">
+          <USelect
+            v-model="formState.billingPlan"
+            :items="[
+              { label: 'Free Plan ($0/mo)', value: 'free' },
+              { label: 'Pro Plan ($49/mo)', value: 'pro' },
+              { label: 'Enterprise Plan ($199/mo)', value: 'enterprise' },
+            ]"
+            value-key="value"
+            label-key="label"
+            class="w-full"
+          />
+        </UFormField>
+        -->
       </UForm>
     </template>
 
     <template #footer>
       <div class="flex justify-end gap-2 w-full">
-        <UButton
-          color="neutral"
-          variant="outline"
-          :disabled="isSubmitting"
-          @click="open = false"
-        >
+        <UButton color="neutral" variant="outline" :disabled="isSubmitting" @click="open = false">
           Cancel
         </UButton>
         <UButton
-          color="primary"
+          :color="isEmpty ? 'neutral' : 'primary'"
           :loading="isSubmitting"
-          :disabled="!formState.name || !formState.name.trim()"
+          :variant="isEmpty ? 'ghost' : 'solid'"
+          :disabled="isEmpty"
           @click="formRef?.submit()"
         >
           Create Workspace

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-const tabs = computed(() => [
+const links = computed(() => [
   {
     label: 'General',
     icon: 'i-lucide-settings',
@@ -27,25 +27,22 @@ const tabs = computed(() => [
 </script>
 
 <template>
-  <div class="space-y-6">
-    <!-- Header Title -->
-    <div>
-      <h2 class="text-xl font-extrabold text-gray-900 dark:text-white">Workspace Settings</h2>
-      <p class="text-xs text-gray-500">
-        Manage your organization preferences, team members, and security
-      </p>
-    </div>
+<UDashboardPanel id="settings" :ui="{ body: '' }">
+    <template #header>
+      <UDashboardNavbar title="Settings">
+        <template #leading>
+          <UDashboardSidebarCollapse />
+        </template>
+      </UDashboardNavbar>
 
-    <!-- Sub Navigation Tabs -->
-    <UNavigationMenu
-      :items="tabs"
-      orientation="horizontal"
-      class="border-b border-gray-200 dark:border-gray-800 pb-2"
-    />
+      <UDashboardToolbar>
+        <!-- NOTE: The `-mx-1` class is used to align with the `DashboardSidebarCollapse` button here. -->
+        <UNavigationMenu :items="links" highlight class="-mx-1 flex-1" />
+      </UDashboardToolbar>
+    </template>
 
-    <!-- Sub Page View -->
-    <UCard class="border border-gray-200 dark:border-gray-800 shadow-sm">
+    <template #body>
       <RouterView />
-    </UCard>
-  </div>
+    </template>
+  </UDashboardPanel>
 </template>
